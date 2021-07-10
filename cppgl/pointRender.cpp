@@ -174,6 +174,13 @@ void draw_cross(int x, int y)
 	frameBuffer[x][y - 1] = *draw_col;
 }
 
+
+void glInit() 
+{
+	glCreateWindow();
+	clear();
+}
+
 int main()
 {
 	glCreateWindow();
