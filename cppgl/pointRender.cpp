@@ -13,6 +13,7 @@ float clamp01(float x)
 {
 	return x < 0.0f ? 0.0f : x > 1.0f ? 1.0f : x;
 }
+
 class vec3
 {
 public:
@@ -78,11 +79,11 @@ void glCreateWindow(int new_width = 1920, int new_height = 1080)
 
 bool outOfBounds(int x, int y, int xOff = 0, int yOff = 0)
 {
-	return x < 0 + xOff + vp_x || y < 0 + yOff + vp_y || x > vp_boundx - 1 - xOff || y > vp_boundy - 1 - yOff;
+	return x < xOff + vp_x || y <  yOff + vp_y || x > vp_boundx - 1 - xOff || y > vp_boundy - 1 - yOff;
 }
 
 
-void glFinnish(const char* filename)
+void glFinish(const char* filename)
 {
 	unsigned char header[14] = { 'B', 'M', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	unsigned char headerinfo[40] = { 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 24, 0 };
@@ -97,7 +98,6 @@ void glFinnish(const char* filename)
 
 	fwrite(header, 1, 14, dump);
 	fwrite(headerinfo, 1, 40, dump);
-	//fwrite(frameBuffer, 1, filesize, dump);
 
 	int i, j = 0;
 	while (j < height)
@@ -115,6 +115,8 @@ void glFinnish(const char* filename)
 	for (int i = 0; i < width; i++)
 		delete[] frameBuffer[i];
 	delete[] frameBuffer;
+
+
 	exit(EXIT_SUCCESS);
 }
 
@@ -148,11 +150,13 @@ void set_draw_col(vec3* new_col)
 
 void set_draw_col(const vec3* new_col)
 {
+	delete draw_col;
 	draw_col = (vec3*)new_col;
 }
 
 void set_clear_col(vec3* new_col)
 {
+	delete clear_col;
 	clear_col = new_col;
 }
 
@@ -168,8 +172,6 @@ void draw_cross(int x, int y)
 	if (x < 1 || y < 1 || x > width - 2 || y > height - 2) return;
 	frameBuffer[x - 1][y] = *draw_col;
 	frameBuffer[x + 1][y] = *draw_col;
-	/*frameBuffer[x - 1][y - 1] = *draw_col;
-	frameBuffer[x + 1][y + 1] = *draw_col;*/
 	frameBuffer[x][y + 1] = *draw_col;
 	frameBuffer[x][y - 1] = *draw_col;
 }
@@ -204,12 +206,12 @@ int main()
 			h -= 0.0001;
 		}
 
-
 		i++;
 	}
 
 
-	glFinnish("articMonkeys.bmp");
+	glFinish("articMonkeys.bmp");
+
 
 	return 0;
 }
