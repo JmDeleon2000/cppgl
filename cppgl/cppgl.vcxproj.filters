@@ -15,12 +15,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pointRender.cpp">
+    <ClCompile Include="lines.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="articMonkeys.bmp">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="lines.bmp">
       <Filter>Source Files</Filter>
     </Image>
   </ItemGroup>
