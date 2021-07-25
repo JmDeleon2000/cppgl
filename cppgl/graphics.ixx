@@ -3,7 +3,9 @@
 import ModelImporter;
 export module graphics;
 
-using namespace modelImp;
+
+using namespace modelImp;
+
 
 #define pixel_size  3
 
@@ -209,6 +211,11 @@ export namespace gl {
 		float dx = abs(v2->x - v1->x);
 		float dy = abs(v2->y - v1->y);
 
+		if (x0 == x1 && y0 == y1) 
+		{
+			gldraw_vertex(x0, x1);
+			return;
+		}
 
 		bool steep = dy > dx;
 		if (steep)
@@ -261,8 +268,32 @@ export namespace gl {
 		}
 	}
 
-	void glLoadModel() 
+	void glLoadModel(const char* filename, vert2 translate, vert2 scale )
 	{
-		obj* x = new obj("models/model.obj");
+		obj* model = new obj(filename);
+		int i = 0, j;
+		while (i < model->f_size)
+		{
+			j = 0;
+			while (j < model->f[i].size)
+			{
+				vect3 v1 = model->v[model->f[i].data[j] - 1];
+				vect3 v2 = model->v[model->f[i].data[(j+3)% model->f[i].size] - 1];
+
+
+				vert2* begin = new vert2(), * end = new vert2();
+				begin->x = v1.x * scale.x + translate.x;
+				begin->y = v1.y * scale.y + translate.y;
+
+				end->x = v2.x * scale.x + translate.x;
+				end->y = v2.y * scale.y + translate.y;
+				glLine(begin, end);
+				delete begin;
+				delete end;
+				j+=3;
+			}
+
+			i++;
+		}
 	}
 }

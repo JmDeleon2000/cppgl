@@ -33,10 +33,10 @@ void figure(int lines, vert2* init, int length)
 	delete v2;
 }
 
-
+/*
 	int main()
 	{
-		/*glCreateWindow(500, 500);
+		glCreateWindow(500, 500);
 		clear();
 
 		set_draw_col(WHITE);
@@ -73,9 +73,9 @@ void figure(int lines, vert2* init, int length)
 		
 	
 
-		glFinish("lines.bmp");*/
-		glLoadModel();
-
+		glFinish("lines.bmp");
+		
 		return 0;
 	}
 
+	*/

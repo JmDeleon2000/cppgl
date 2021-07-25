@@ -124,6 +124,7 @@ export namespace modelImp
 #if importer_debug
 					cout << line << endl;
 #endif
+
 					line.erase(0, 2);
 					
 					vector<int> k;
@@ -133,8 +134,9 @@ export namespace modelImp
 						sub = line.substr(0, line.find(" "));
 						while (!sub.empty())
 						{
-							k.push_back((int)atoi(sub.substr(0, sub.find("/")).c_str()));
-							sub.erase(0, line.find("/") + 1);
+							string x = sub.substr(0, sub.find("/"));
+							k.push_back((int)atoi(x.c_str()));
+							sub.erase(0, x.length() + 1);
 						}
 						if (line.find(" ") == string::npos)
 							break;
@@ -148,6 +150,7 @@ export namespace modelImp
 					std::memcpy(new_face.data, k.data(), k.size() * sizeof(int));
 					new_face.size = k.size();
 #if importer_debug
+					
 					cout << new_face.data[0] << " " << new_face.data[1] << " " << new_face.data[2] << endl;
 					cout << new_face.data[3] << " " << new_face.data[4] << " " << new_face.data[5] << endl;
 					cout << new_face.data[6] << " " << new_face.data[7] << " " << new_face.data[8] << endl;
@@ -189,6 +192,15 @@ export namespace modelImp
 			cout << v[v_size - 1].x << " " << v[v_size - 1].y << " " << v[v_size - 1].z << endl;
 			cout << uvs[uv_size - 1].x << " " << uvs[uv_size - 1].y << " " << uvs[uv_size - 1].z << endl;
 			cout << n[n_size - 1].x << " " << n[n_size - 1].y << " " << n[n_size - 1].z << endl;
+			int i = 0;
+			cout << "f_size: " << f_size << endl;
+			cout << f[f_size - 1].size << endl;
+			while (i<f[f_size-1].size)
+			{
+				cout << f[f_size - 1].data[i] << "/";
+				i++;
+			}
+			cout << endl;
 #endif
 
 			stream.close();
