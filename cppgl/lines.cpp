@@ -1,8 +1,10 @@
-#pragma warning(disable : 4996)
-#include <iostream>
 #include <cmath>
-import graphics;
+import graphics;
+
+
+
 using namespace gl;
+
 
 
 
@@ -34,7 +36,7 @@ void figure(int lines, vert2* init, int length)
 
 	int main()
 	{
-		glCreateWindow(500, 500);
+		/*glCreateWindow(500, 500);
 		clear();
 
 		set_draw_col(WHITE);
@@ -71,8 +73,8 @@ void figure(int lines, vert2* init, int length)
 		
 	
 
-		glFinish("lines.bmp");
-
+		glFinish("lines.bmp");*/
+		glLoadModel();
 
 		return 0;
 	}

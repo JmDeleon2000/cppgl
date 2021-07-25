@@ -21,6 +21,9 @@
     <ClCompile Include="graphics.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="importer.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="articMonkeys.bmp">

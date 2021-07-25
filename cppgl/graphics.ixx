@@ -1,32 +1,34 @@
 #pragma warning(disable : 4996)
 #include <iostream>
-#include <cmath>
+import ModelImporter;
 export module graphics;
+
+using namespace modelImp;
 
 #define pixel_size  3
 
-namespace gl {
+export namespace gl {
 
 
 
-	export float clamp01(float x)
+	 float clamp01(float x)
 	{
 		return x < 0.0f ? 0.0f : x > 1.0f ? 1.0f : x;
 	}
 
-	export class vec3
+	 class col3
 	{
 	public:
 		unsigned char col[3];
 
-		vec3()
+		col3()
 		{
 			this->col[0] = 0;
 			this->col[1] = 0;
 			this->col[2] = 0;
 		}
 
-		vec3(float r, float g, float b)
+		col3(float r, float g, float b)
 		{
 			this->col[0] = (int)(clamp01(b) * 255);
 			this->col[1] = (int)(clamp01(g) * 255);
@@ -35,19 +37,19 @@ namespace gl {
 
 	};
 
-	export struct vert2
+	 struct vert2
 	{
 		float x = 0;
 		float y = 0;
 	};
 
-	vec3* clear_col = new vec3();
-	vec3* draw_col = new vec3();
+	col3* clear_col = new col3();
+	col3* draw_col = new col3();
 
-	export const vec3* WHITE = new vec3(1, 1, 1);
-	export const vec3* BLACK = new vec3();
+	 const col3* WHITE = new col3(1, 1, 1);
+	 const col3* BLACK = new col3();
 
-	vec3** frameBuffer;
+	col3** frameBuffer;
 
 	int width = 0;
 	int height = 0;
@@ -59,7 +61,7 @@ namespace gl {
 	int vp_boundy = 0;
 	const int filesize = width * height * pixel_size;
 
-	export void glCreateViewPort(int x, int y, int width, int height)
+	 void glCreateViewPort(int x, int y, int width, int height)
 	{
 		vp_x = x;
 		vp_y = y;
@@ -69,7 +71,7 @@ namespace gl {
 		vp_boundy = (vp_y + vp_height) > gl::height ? gl::height : (vp_y + vp_height);
 	}
 
-	export void glCreateWindow(int new_width = 1920, int new_height = 1080)
+	 void glCreateWindow(int new_width = 1920, int new_height = 1080)
 	{
 		for (int i = 0; i < width; i++)
 			delete[] frameBuffer[i];
@@ -78,9 +80,9 @@ namespace gl {
 		width = new_width;
 		height = new_height;
 		glCreateViewPort(0, 0, new_width, new_height);
-		frameBuffer = new vec3 * [width];
+		frameBuffer = new col3 * [width];
 		for (int i = 0; i < width; i++)
-			frameBuffer[i] = new vec3[height];
+			frameBuffer[i] = new col3[height];
 	}
 
 	bool outOfBounds(int x, int y, int x0ff = 0, int y0ff = 0)
@@ -89,7 +91,7 @@ namespace gl {
 	}
 
 
-	export void glFinish(const char* filename)
+	 void glFinish(const char* filename)
 	{
 		unsigned char header[14] = { 'B', 'M', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		unsigned char headerinfo[40] = { 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 24, 0 };
@@ -126,7 +128,7 @@ namespace gl {
 		exit(EXIT_SUCCESS);
 	}
 
-	export void clear()
+	 void clear()
 	{
 		int i = vp_x, j;
 
@@ -143,7 +145,7 @@ namespace gl {
 		}
 	}
 
-	export void gldraw_vertex(int x, int y, vec3* color = nullptr)
+	 void gldraw_vertex(int x, int y, col3* color = nullptr)
 	{
 		if (outOfBounds(x, y)) return;
 		if (color)
@@ -155,31 +157,31 @@ namespace gl {
 		frameBuffer[x][y] = *draw_col;
 	}
 
-	export void set_draw_col(vec3* new_col)
+	 void set_draw_col(col3* new_col)
 	{
 		delete draw_col;
 		draw_col = new_col;
 	}
 
-	export void set_draw_col(const vec3* new_col)
+	 void set_draw_col(const col3* new_col)
 	{
 		delete draw_col;
-		draw_col = (vec3*)new_col;
+		draw_col = (col3*)new_col;
 	}
 
-	export void set_clear_col(vec3* new_col)
+	 void set_clear_col(col3* new_col)
 	{
 		delete clear_col;
 		clear_col = new_col;
 	}
 
-	export void set_clear_col(const vec3* new_col)
+	 void set_clear_col(const col3* new_col)
 	{
 		delete clear_col;
-		clear_col = (vec3*)new_col;
+		clear_col = (col3*)new_col;
 	}
 
-	export void draw_cross(int x, int y)
+	 void draw_cross(int x, int y)
 	{
 		if (outOfBounds(x, y)) return;
 		frameBuffer[x][y] = *draw_col;
@@ -190,14 +192,14 @@ namespace gl {
 		frameBuffer[x][y - 1] = *draw_col;
 	}
 
-	export void glInit()
+	 void glInit()
 	{
 		glCreateWindow();
 		clear();
 	}
 
 
-	export void glLine(vert2* v1, vert2* v2)
+	 void glLine(vert2* v1, vert2* v2)
 	{
 		float x0 = v1->x;
 		float x1 = v2->x;
@@ -259,41 +261,8 @@ namespace gl {
 		}
 	}
 
-#define mandel 50
-
-	void complexMul(vert2 a, vert2 b, vert2* res)
+	void glLoadModel() 
 	{
-
-		res->x = a.x * b.x + -1 * a.y * b.y;
-		res->y = a.x * b.y + b.x * a.y;
-
+		obj* x = new obj("models/model.obj");
 	}
-
-
-
-	bool mandelbrot(int x, int y, float zoom = 500)
-	{
-		vert2* z = (new vert2);
-		vert2* c = (new vert2);
-		c->x = x / zoom;
-		c->y = y / zoom;
-		int i = 0;
-		while (i++ < mandel)
-		{
-
-			// z = z*z+c
-			complexMul(*z, *z, z);
-			z->x = z->x + c->x;
-			z->y = z->y + c->x;
-		}
-		bool a = sqrt(z->x * z->x + z->y * z->y) < 2.0;
-
-		delete z;
-		delete c;
-
-		return a;
-	}
-
-
-
 }

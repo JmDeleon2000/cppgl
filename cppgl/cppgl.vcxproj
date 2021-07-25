@@ -141,6 +141,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="graphics.ixx" />
+    <ClCompile Include="importer.ixx" />
     <ClCompile Include="lines.cpp" />
   </ItemGroup>
   <ItemGroup>
