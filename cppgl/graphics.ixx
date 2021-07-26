@@ -11,8 +11,6 @@ using namespace modelImp;
 
 export namespace gl {
 
-
-
 	 float clamp01(float x)
 	{
 		return x < 0.0f ? 0.0f : x > 1.0f ? 1.0f : x;
@@ -93,7 +91,7 @@ export namespace gl {
 	}
 
 
-	 void glFinish(const char* filename)
+	 void glFinish(const char* filename, bool end_exec = true)
 	{
 		unsigned char header[14] = { 'B', 'M', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		unsigned char headerinfo[40] = { 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 24, 0 };
@@ -127,7 +125,7 @@ export namespace gl {
 		delete[] frameBuffer;
 
 
-		exit(EXIT_SUCCESS);
+		if (end_exec) exit(EXIT_SUCCESS);
 	}
 
 	 void clear()
@@ -268,7 +266,7 @@ export namespace gl {
 		}
 	}
 
-	void glLoadModel(const char* filename, vert2 translate, vert2 scale )
+	obj* glLoadModel(const char* filename, vert2 translate, vert2 scale, bool discard = false)
 	{
 		obj* model = new obj(filename);
 		int i = 0, j;
@@ -295,5 +293,45 @@ export namespace gl {
 
 			i++;
 		}
+		if (discard)
+		{
+			delete model;
+			return nullptr;
+		}
+		return model;
+	}
+
+	obj* glLoadModel(obj* model, vert2 translate, vert2 scale, bool discard = false)
+	{
+		int i = 0, j;
+		while (i < model->f_size)
+		{
+			j = 0;
+			while (j < model->f[i].size)
+			{
+				vect3 v1 = model->v[model->f[i].data[j] - 1];
+				vect3 v2 = model->v[model->f[i].data[(j + 3) % model->f[i].size] - 1];
+
+
+				vert2* begin = new vert2(), * end = new vert2();
+				begin->x = v1.x * scale.x + translate.x;
+				begin->y = v1.y * scale.y + translate.y;
+
+				end->x = v2.x * scale.x + translate.x;
+				end->y = v2.y * scale.y + translate.y;
+				glLine(begin, end);
+				delete begin;
+				delete end;
+				j += 3;
+			}
+
+			i++;
+		}
+		if (discard)
+		{
+			delete model;
+			return nullptr;
+		}
+		return model;
 	}
 }

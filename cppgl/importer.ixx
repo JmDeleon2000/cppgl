@@ -27,12 +27,25 @@ export namespace modelImp
 			vect3::y = 0;
 			vect3::z = 0;
 		}
+		
 	};
 
-	struct face
+	class face
 	{
-		int size;
-		int *data;
+		public:
+			int size;
+			int *data;
+			face() 
+			{
+				size = 0;
+				data = nullptr;
+			}
+			face(int size, int* data) 
+			{
+				face::size = size;
+				face::data = data;
+			}
+
 	};
 	
 	class obj
