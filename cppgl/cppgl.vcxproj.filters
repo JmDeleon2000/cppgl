@@ -27,6 +27,9 @@
     <ClCompile Include="modelos.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="poligonos.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="articMonkeys.bmp">

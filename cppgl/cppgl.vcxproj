@@ -144,6 +144,7 @@
     <ClCompile Include="importer.ixx" />
     <ClCompile Include="lines.cpp" />
     <ClCompile Include="modelos.cpp" />
+    <ClCompile Include="poligonos.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="articMonkeys.bmp" />
