@@ -39,8 +39,8 @@ public:
 void fillTriangle(vert2* triangle) 
 {
 	vert2 middle;
-	int lowest, highest, leftmost, rightmost, lmi = 0, rmi = 0;
-	lowest = triangle[0].y;
+	int highest, leftmost, rightmost, lmi = 0, rmi = 0;
+
 	highest = triangle[0].y;
 	leftmost = triangle[0].x;
 	rightmost = triangle[0].y;
@@ -48,37 +48,57 @@ void fillTriangle(vert2* triangle)
 	int i = 0;
 	while (i<3)
 	{
-		if (lowest > triangle[i].y) lowest = triangle[i].y;
 		if (highest < triangle[i].y) highest = triangle[i].y;
 		if (leftmost > triangle[i].x) { leftmost = triangle[i].x; lmi = i; }
 		if (rightmost < triangle[i].x) { rightmost = triangle[i].x; rmi = i; }
 		i++;
 	}
-	middle = triangle[((lmi == 0 && rmi == 2) ? 1 : (lmi == 1 && rmi == 2) ? 0 : 2)];
+	middle = triangle[((lmi == 0 && rmi == 2) ? 1 : ((lmi == 1 && rmi == 2) ? 0 : 2))];
 
+	float ms0 = 0, ms1 = 0, mi0 = 0, mi1 = 0;
 	if (highest == middle.y) 
 	{
-		
+		mi0 = mi1 = (triangle[rmi].y - triangle[lmi].y) / (triangle[rmi].x - triangle[lmi].x);
+		ms0 = (middle.y - triangle[lmi].y) / (middle.x - triangle[lmi].x);
+		ms1 = (triangle[rmi].y - middle.y) / (triangle[rmi].x - middle.x);
 	}
 	else 
 	{
-
+		ms0 = ms1 = (triangle[rmi].y - triangle[lmi].y) / (triangle[rmi].x - triangle[lmi].x);
+		mi0 = (middle.y - triangle[lmi].y) / (middle.x - triangle[lmi].x);
+		mi1 = (triangle[rmi].y - middle.y) / (triangle[rmi].x - middle.x);
 	}
 
-	int j;
+	bool in;
+	vert2 v1, v2;
+
 	i = leftmost;
+	while (i < middle.x)
+	{
+		in = false;
+		v1.x = v2.x = i;
+		v1.y = mi0 * (i - leftmost) + triangle[lmi].y;
+		v2.y = ms0 * (i - leftmost) + triangle[lmi].y;
+		glLine(&v1, &v2);
+		i++;
+	}
+
+	float mid_start_v2 = v2.y;
+	float mid_start_v1 = v1.y;
+
 	while (i < rightmost)
 	{
-		j = lowest;
-		while (j < highest)
-		{
-
-			j++;
-		}
+		in = false;
+		v1.x = v2.x = i;
+		v1.y = mi1 * (i - middle.x) + mid_start_v1;
+		v2.y = ms1 * (i - middle.x) + mid_start_v2;
+		glLine(&v1, &v2);
 		i++;
 	}
 
 }
+
+
 
 
 int main() 
@@ -167,7 +187,11 @@ int main()
 		p5[3] = v;
 	}
 	//brackets para minimizar con editor
+	glCreateWindow(1920, 1080);
+	set_draw_col(WHITE);
 
+	fillTriangle(p3);
 
+	glFinish("polys.bmp", true);
 	return 0;
 }
