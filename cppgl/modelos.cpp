@@ -20,16 +20,20 @@ using namespace gl;
 	scale->y = 1500;
 	trans->x = width / 2;
 	trans->y = height / 2-500;
-	modelImp::obj* model = glLoadModel("models/gekota.obj", *trans, *scale, false);
+	modelImp::vect3 light = *new modelImp::vect3(-1, -1, 0);
+	modelImp::obj* model = glLoadModel("models/gekota.obj", *trans, *scale, light, false);
 	scale->x = 1500;
 	scale->y = 1500;
 	trans->y = height / 2 - 500;
 	trans->x = 300;
+	light.x *= -1;
 	if (model)
-		glLoadModel(model, *trans, *scale, false);
+		glLoadModel(model, *trans, *scale, light, false);
 	trans->x = width-300;
+	light.x = 0.5;
+	light.y *= -1;
 	if (model)
-		glLoadModel(model, *trans, *scale, false);
+		glLoadModel(model, *trans, *scale, light, false);
 	glFinish("combo.bmp", false);
 	auto stop = high_resolution_clock::now();
 	auto duration = duration_cast<seconds>(stop - start);

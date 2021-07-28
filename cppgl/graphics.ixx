@@ -266,7 +266,15 @@ export namespace gl {
 		}
 	}
 
-	obj* glLoadModel(const char* filename, vert2 translate, vert2 scale, bool discard = false)
+	 bool light(vect3 n0, vect3 n1, vect3  dir) 
+	 {
+	
+		 if ((n0.x * dir.x + n0.y * dir.y + n0.z * dir.z) < 0) {  return false; }
+		 if ((n1.x * dir.x + n1.y * dir.y + n1.z * dir.z) < 0) {  return false; }
+		 return true;
+	 }
+
+	 obj* glLoadModel(const char* filename, vert2 translate, vert2 scale, vect3 lightDir, bool discard = false)
 	{
 		obj* model = new obj(filename);
 		int i = 0, j;
@@ -276,8 +284,16 @@ export namespace gl {
 			while (j < model->f[i].size)
 			{
 				vect3 v1 = model->v[model->f[i].data[j] - 1];
-				vect3 v2 = model->v[model->f[i].data[(j+3)% model->f[i].size] - 1];
+				vect3 v2 = model->v[model->f[i].data[(j + 3) % model->f[i].size] - 1];
 
+
+				vect3 n0 = model->n[model->f[i].data[(j + 2) % model->f[i].size] - 1];
+				vect3 n1 = model->n[model->f[i].data[(j + 5) % model->f[i].size] - 1];
+
+				if (light(n1, n0, lightDir))
+				{
+					i++; continue;
+				}
 
 				vert2* begin = new vert2(), * end = new vert2();
 				begin->x = v1.x * scale.x + translate.x;
@@ -288,10 +304,10 @@ export namespace gl {
 				glLine(begin, end);
 				delete begin;
 				delete end;
-				j+=3;
-			}
 
-			i++;
+				j += 3;
+			}
+			i ++;
 		}
 		if (discard)
 		{
@@ -301,7 +317,7 @@ export namespace gl {
 		return model;
 	}
 
-	obj* glLoadModel(obj* model, vert2 translate, vert2 scale, bool discard = false)
+	obj* glLoadModel(obj* model, vert2 translate, vert2 scale, vect3 lightDir, bool discard = false)
 	{
 		int i = 0, j;
 		while (i < model->f_size)
@@ -313,6 +329,14 @@ export namespace gl {
 				vect3 v2 = model->v[model->f[i].data[(j + 3) % model->f[i].size] - 1];
 
 
+				vect3 n0 = model->n[model->f[i].data[(j + 2) % model->f[i].size] - 1];
+				vect3 n1 = model->n[model->f[i].data[(j + 5) % model->f[i].size] - 1];
+
+				if (light(n1, n0, lightDir))
+				{
+					i++; continue;
+				}
+
 				vert2* begin = new vert2(), * end = new vert2();
 				begin->x = v1.x * scale.x + translate.x;
 				begin->y = v1.y * scale.y + translate.y;
@@ -322,9 +346,9 @@ export namespace gl {
 				glLine(begin, end);
 				delete begin;
 				delete end;
+
 				j += 3;
 			}
-
 			i++;
 		}
 		if (discard)
