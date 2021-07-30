@@ -3,67 +3,23 @@ import graphics;
 using namespace gl;
 
 
-void fillTriangle(vert2* triangle) 
+void trivialTriangle(vert2 v0, vert2 v1, vert2 v2)
 {
-	vert2 middle;
-	int highest, leftmost, rightmost, lmi = 0, rmi = 0;
-
-	highest = triangle[0].y;
-	leftmost = triangle[0].x;
-	rightmost = triangle[0].y;
-
-	int i = 0;
-	while (i<3)
+	float m0, m1;
+	if (v0.x < v2.x)
 	{
-		if (highest < triangle[i].y) highest = triangle[i].y;
-		if (leftmost > triangle[i].x) { leftmost = triangle[i].x; lmi = i; }
-		if (rightmost < triangle[i].x) { rightmost = triangle[i].x; rmi = i; }
-		i++;
-	}
-	middle = triangle[((lmi == 0 && rmi == 2) ? 1 : ((lmi == 1 && rmi == 2) ? 0 : 2))];
-
-	float ms0 = 0, ms1 = 0, mi0 = 0, mi1 = 0;
-	if (highest == middle.y) 
-	{
-		mi0 = mi1 = (triangle[rmi].y - triangle[lmi].y) / (triangle[rmi].x - triangle[lmi].x);
-		ms0 = (middle.y - triangle[lmi].y) / (middle.x - triangle[lmi].x);
-		ms1 = (triangle[rmi].y - middle.y) / (triangle[rmi].x - middle.x);
+		m0 = (v1.y - v0.y) / (v1.x - v0.x);
+		m1 = (v0.y - v2.y) / (v0.x - v2.x);
 	}
 	else 
 	{
-		ms0 = ms1 = (triangle[rmi].y - triangle[lmi].y) / (triangle[rmi].x - triangle[lmi].x);
-		mi0 = (middle.y - triangle[lmi].y) / (middle.x - triangle[lmi].x);
-		mi1 = (triangle[rmi].y - middle.y) / (triangle[rmi].x - middle.x);
+		m0 = (v1.y - v0.y) / (v1.x - v0.x);
+		m1 = (v0.y - v2.y) / (v0.x - v2.x);
 	}
-
-	bool in;
-	vert2 v1, v2;
-
-	i = leftmost;
-	while (i < middle.x)
-	{
-		in = false;
-		v1.x = v2.x = i;
-		v1.y = mi0 * (i - leftmost) + triangle[lmi].y;
-		v2.y = ms0 * (i - leftmost) + triangle[lmi].y;
-		glLine(&v1, &v2);
-		i++;
-	}
-
-	float mid_start_v2 = v2.y;
-	float mid_start_v1 = v1.y;
-
-	while (i < rightmost)
-	{
-		in = false;
-		v1.x = v2.x = i;
-		v1.y = mi1 * (i - middle.x) + mid_start_v1;
-		v2.y = ms1 * (i - middle.x) + mid_start_v2;
-		glLine(&v1, &v2);
-		i++;
-	}
-
 }
+
+
+
 
 float sqrDist(vert2 v1, vert2 v2) 
 {
@@ -157,7 +113,7 @@ void fillPoly(vert2* poly, int size)
 		triangle[0] = poly[i];
 		triangle[1] = poly[index0];
 		triangle[2] = poly[index1];
-		fillTriangle(triangle);
+		gl::fillTriangle(triangle);
 		
 		i++;
 	}
@@ -165,12 +121,23 @@ void fillPoly(vert2* poly, int size)
 }
 
 
-int main() 
+void drawPoly(vert2* poly, int size) 
+{
+	int i = 0;
+
+	while (i < size)
+	{
+		glLine(&poly[i], &poly[(i + 1) % size], nullptr);
+		i++;
+	}
+}
+
+int main()
 {
 	vert2* p1 = new vert2[10];
 	vert2* p2 = new vert2[4];
 	vert2* p3 = new vert2[3];
-	vert2* p4 = new vert2[22];
+	vert2* p4 = new vert2[18];
 	vert2* p5 = new vert2[4];
 	vert2 v = *new vert2();
 	{
@@ -217,7 +184,7 @@ int main()
 		p2[2] = v;
 		v.x = 374;
 		v.y = 302;
-		p2[3] = v;
+		p2[3] = v;	
 	}
 	{
 		v.x = 377;
@@ -285,18 +252,7 @@ int main()
 		v.x = 466;
 		v.y = 180;
 		p4[17] = v;
-		v.x = 682;
-		v.y = 175;
-		p5[18] = v;
-		v.x = 708;
-		v.y = 120;
-		p5[19] = v;
-		v.x = 735;
-		v.y = 148;
-		p5[20] = v;
-		v.x = 739;
-		v.y = 170;
-		p5[21] = v;
+		
 	}
 	{
 		v.x = 682;
@@ -313,16 +269,90 @@ int main()
 		p5[3] = v;
 	}
 	//brackets para minimizar con editor
-	glCreateWindow(800, 800);
+	glCreateWindow(800, 500);
 	set_draw_col(WHITE);
 
+	fillTriangle(p3);
+
+	fillTriangle(p2);
+	vert2* temp = new vert2[3];
+	temp[0] = p2[1];
+	p2[1] = p2[3];
+	fillTriangle(p2);
+	p2[1] = temp[0];
+
 	
-	fillPoly(p1, 10);
-	fillPoly(p2, 4);
-	fillPoly(p3, 3);
-	fillPoly(p4, 18);
+	fillTriangle(&p1[1]);
+	fillTriangle(&p1[3]);
+	fillTriangle(&p1[5]);
+	fillTriangle(&p1[7]);
+	temp[0] = p1[0];
+	temp[1] = p1[9];
+	temp[2] = p1[1];
+	fillTriangle(temp);
+	temp[0] = p1[3];
+	temp[1] = p1[9];
+	temp[2] = p1[1];
+	fillTriangle(temp);
+	temp[0] = p1[3];
+	temp[1] = p1[5];
+	temp[2] = p1[7];
+	fillTriangle(temp);
+	temp[0] = p1[7];
+	temp[1] = p1[9];
+	temp[2] = p1[3];
+	fillTriangle(temp);
 
+	fillTriangle(&p4[3]);
+	fillTriangle(&p4[5]);
+	temp[0] = p4[17];
+	temp[1] = p4[0];
+	temp[2] = p4[1];
+	fillTriangle(temp);
+	temp[1] = p4[16];
+	temp[2] = p4[1];
+	fillTriangle(temp);
+	temp[0] = p4[2];
+	fillTriangle(temp);
+	temp[2] = p4[3];
+	fillTriangle(temp);
+	temp[0] = p4[5];
+	fillTriangle(temp);
+	temp[2] = p4[15];
+	fillTriangle(temp);
+	temp[1] = p4[14];
+	fillTriangle(temp);
+	temp[1] = p4[11];
+	fillTriangle(temp);
+	temp[1] = p4[10];
+	fillTriangle(temp);
+	temp[2] = p4[9];
+	fillTriangle(temp);
+	temp[1] = p4[8];
+	fillTriangle(temp);
+	temp[2] = p4[7];
+	fillTriangle(temp);
+	temp[0] = p4[14];
+	temp[1] = p4[13];
+	temp[2] = p4[12];
+	fillTriangle(temp);
+	temp[1] = p4[11];
+	fillTriangle(temp);
 
-	glFinish("polys.bmp", true);
+	set_draw_col(new col3(0, 0, 0));
+	fillTriangle(p5);
+	temp[0] = p5[0];
+	temp[1] = p5[3];
+	temp[2] = p5[2];
+	fillTriangle(temp);
+
+	set_draw_col(new col3(1, 0, 0));
+	drawPoly(p1, 10);
+	drawPoly(p2, 4);
+	drawPoly(p3, 3);
+	drawPoly(p4, 18);
+	drawPoly(p5, 4);
+
+	glFinish("polys.bmp", false);
 	return 0;
 }

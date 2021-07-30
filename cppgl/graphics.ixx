@@ -148,10 +148,9 @@ export namespace gl {
 	 void gldraw_vertex(int x, int y, col3* color = nullptr)
 	{
 		if (outOfBounds(x, y)) return;
-		if (color)
+		if (color != nullptr)
 		{
 			frameBuffer[x][y] = *color;
-			delete color;
 			return;
 		}
 		frameBuffer[x][y] = *draw_col;
@@ -199,7 +198,7 @@ export namespace gl {
 	}
 
 
-	 void glLine(vert2* v1, vert2* v2)
+	 void glLine(vert2* v1, vert2* v2, col3 *color = nullptr)
 	{
 		float x0 = v1->x;
 		float x1 = v2->x;
@@ -211,7 +210,7 @@ export namespace gl {
 
 		if (x0 == x1 && y0 == y1) 
 		{
-			gldraw_vertex(x0, x1);
+			gldraw_vertex(x0, x1, color);
 			return;
 		}
 
@@ -245,14 +244,14 @@ export namespace gl {
 		float offset = 0;
 		float limit = 0.5;
 
-		int i = (int)x0, y = y0;
+		float i = x0, y = y0;
 
-		while (i < (int)x1 + 1)
+		while (i < x1 + 1)
 		{
 			if (steep)
-				gldraw_vertex(y, i);
+				gldraw_vertex(y, i, color);
 			else
-				gldraw_vertex(i, y);
+				gldraw_vertex(i, y, color);
 
 			offset += m;
 
@@ -268,47 +267,203 @@ export namespace gl {
 
 	 bool light(vect3 n0, vect3 n1, vect3  dir) 
 	 {
-	
+		 // cos(angulo) = a*b;
 		 if ((n0.x * dir.x + n0.y * dir.y + n0.z * dir.z) < 0) {  return false; }
 		 if ((n1.x * dir.x + n1.y * dir.y + n1.z * dir.z) < 0) {  return false; }
 		 return true;
 	 }
 
+	 bool light(vect3 n0,  vect3  dir)
+	 {
+		 // cos(angulo) = a*b;
+		 if ((n0.x * dir.x + n0.y * dir.y + n0.z * dir.z) < 0) { return false; }
+		 return true;
+	 }
+
+	 /*void fillTriangle(vert2* triangle)
+	 {
+		 col3* color = new col3(rand() / (float)RAND_MAX, rand() / (float)RAND_MAX, rand() / (float)RAND_MAX);
+		 vert2 middle;
+		 float highest, leftmost, rightmost;
+		 int lmi = 0, rmi = 0;
+
+		 highest = triangle[0].y;
+		 leftmost = triangle[0].x;
+		 rightmost = triangle[0].x;
+
+		 int i = 0;
+		 while (i < 3)
+		 {
+			 if (highest < triangle[i].y) highest = triangle[i].y;
+			 if (leftmost > triangle[i].x) { leftmost = triangle[i].x; lmi = i; }
+			 if (rightmost < triangle[i].x) { rightmost = triangle[i].x; rmi = i; }
+			 i++;
+		 }
+		 middle = triangle[((lmi == 0 && rmi == 2) ? 1 : ((lmi == 1 && rmi == 2) ? 0 : 2))];
+		 
+		 if ((triangle[rmi].x - triangle[lmi].x) == 0 || (middle.x - triangle[lmi].x) == 0 || (triangle[rmi].x - middle.x) == 0 
+			 || (middle.x - triangle[lmi].x) == 0 || (triangle[rmi].x - middle.x) == 0) return;
+		 float ms0 = 0, ms1 = 0, mi0 = 0, mi1 = 0;
+		 if (highest == middle.y)
+		 {
+			 mi0 = mi1 = (triangle[rmi].y - triangle[lmi].y) / (triangle[rmi].x - triangle[lmi].x);
+			 ms0 = (middle.y - triangle[lmi].y) / (middle.x - triangle[lmi].x);
+			 ms1 = (triangle[rmi].y - middle.y) / (triangle[rmi].x - middle.x);
+		 }
+		 else
+		 {
+			 ms0 = ms1 = (triangle[rmi].y - triangle[lmi].y) / (triangle[rmi].x - triangle[lmi].x);
+			 mi0 = (middle.y - triangle[lmi].y) / (middle.x - triangle[lmi].x);
+			 mi1 = (triangle[rmi].y - middle.y) / (triangle[rmi].x - middle.x);
+
+		 }
+
+		 
+		 vert2 v1, v2;
+		 v1.y = triangle[lmi].y;
+		 v2.y = triangle[lmi].y;
+
+
+		 i = leftmost;
+		 while (i < middle.x)
+		 {
+			 
+			 v1.x = v2.x = i;
+			 glLine(&v1, &v2, color);
+			 v1.y += mi0;
+			 v2.y += ms0;
+			 i++;
+		 }
+
+		 float mid_start_v2 = v2.y;
+		 float mid_start_v1 = v1.y;
+
+		 while (i < rightmost + 1)
+		 {
+			 
+			 v1.x = v2.x = i;
+			 glLine(&v1, &v2, color);
+			 v1.y += mi1;
+			 v2.y += ms1;
+			 i++;
+		 }
+		 delete color;
+	 }*/
+	 // naive triangle
+	 void flatBotTriangle(vert2 v0, vert2 v1, vert2 v2, col3* color = nullptr)
+	 {
+		 //v0 es el diferente
+		 float d_10 = (v1.x - v0.x) / (v1.y - v0.y);
+		 float d_20 = (v2.x - v0.x) / (v2.y - v0.y);
+
+		 vert2 p0, p1;
+		 p0.x = v1.x;
+		 p1.x = v2.x;
+		 float i = v1.y;
+		 while (i < v0.y + 1)
+		 {
+			 p0.y = p1.y = i;
+			 glLine(&p0, &p1, color);
+			 i++;
+			 p0.x += d_10;
+			 p1.x += d_20;
+		 }
+	 }
+	 void flatTopTriangle(vert2 v0, vert2 v1, vert2 v2, col3* color = nullptr)
+	 {
+		 float d_20 = (v2.x - v0.x) / (v2.y - v0.y);
+		 float d_21 = (v2.x - v1.x) / (v2.y - v1.y);
+
+		 vert2 p0, p1;
+		 p0.x = v2.x;
+		 p1.x = v2.x;
+		 float i = v2.y;
+		 while (i < v1.y + 1)
+		 {
+			 p0.y = p1.y = i;
+			 glLine(&p0, &p1, color);
+			 i++;
+			 p0.x += d_20;
+			 p1.x += d_21;
+		 }
+	 }
+
+	 void fillTriangle(vert2* triangle, col3* color = nullptr, bool randCol = false)
+	 {
+		 vert2 v0 = triangle[0], v1 = triangle[1], v2 = triangle[2];
+		 if (randCol) color = new col3(rand() / (float)RAND_MAX, rand() / (float)RAND_MAX, rand() / (float)RAND_MAX);
+		 vert2 temp;
+		 {
+			 if (v0.y < v1.y)
+			 {
+				 temp = v0;
+				 v0 = v1;
+				 v1 = temp;
+			 }
+			 if (v0.y < v2.y)
+			 {
+				 temp = v0;
+				 v0 = v2;
+				 v2 = temp;
+			 }
+			 if (v1.y < v2.y)
+			 {
+				 temp = v1;
+				 v1 = v2;
+				 v2 = temp;
+			 }
+		 }
+		 if (v1.y == v2.y) 
+		 { 
+			 flatBotTriangle(v0, v1, v2, color); 
+			 if (randCol) delete color;
+			 return; 
+		 }
+		 if (v0.y == v1.y) 
+		 { 
+			 flatTopTriangle(v0, v1, v2, color); 
+			 if (randCol)delete color; 
+			 return; 
+		 }
+		 
+		 temp.y = v1.y;
+		 temp.x = v0.x + ((v1.y - v0.y) / (v2.y - v0.y)) * (v2.x - v0.x);
+		 flatBotTriangle(v0, v1, temp, color);
+		 flatTopTriangle(v1, temp, v2, color);
+		 if (randCol) delete color;
+	 }
+
 	 obj* glLoadModel(const char* filename, vert2 translate, vert2 scale, vect3 lightDir, bool discard = false)
 	{
 		obj* model = new obj(filename);
+		vert2* poly = new vert2[3];
 		int i = 0, j;
+		bool  success = true;
 		while (i < model->f_size)
 		{
 			j = 0;
+				if (model->f[i].size == 0)
+					std::cout << "wtf" << std::endl;
 			while (j < model->f[i].size)
 			{
 				vect3 v1 = model->v[model->f[i].data[j] - 1];
-				vect3 v2 = model->v[model->f[i].data[(j + 3) % model->f[i].size] - 1];
-
-
+				
+				poly[j / 3].x = v1.x * scale.x + translate.x;
+				poly[j / 3].y = v1.y * scale.y + translate.y;
 				vect3 n0 = model->n[model->f[i].data[(j + 2) % model->f[i].size] - 1];
-				vect3 n1 = model->n[model->f[i].data[(j + 5) % model->f[i].size] - 1];
+				
 
-				if (light(n1, n0, lightDir))
-				{
-					i++; continue;
-				}
-
-				vert2* begin = new vert2(), * end = new vert2();
-				begin->x = v1.x * scale.x + translate.x;
-				begin->y = v1.y * scale.y + translate.y;
-
-				end->x = v2.x * scale.x + translate.x;
-				end->y = v2.y * scale.y + translate.y;
-				glLine(begin, end);
-				delete begin;
-				delete end;
+				//if (light(n0, lightDir)) {  success = false; break;}
+				
 
 				j += 3;
 			}
-			i ++;
+			std::cout << j / 3 << "    " << success << "    " << i << std::endl;
+			if (success)
+				fillTriangle(poly, nullptr ,true);
+			i++;
 		}
+		delete[] poly;
 		if (discard)
 		{
 			delete model;
@@ -358,4 +513,7 @@ export namespace gl {
 		}
 		return model;
 	}
+
+
+	
 }
