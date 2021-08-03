@@ -199,7 +199,8 @@ export namespace modelImp
 			f = new face[f_temp.size()];
 			std::memcpy(f, f_temp.data(), f_temp.size() * sizeof(face));
 			f_temp.clear();
-			f_temp.shrink_to_fit();			
+			f_temp.shrink_to_fit();		
+			cout << "Loaded " << f_size << " polygons" << endl;
 
 #if importer_debug
 			cout << v[v_size - 1].x << " " << v[v_size - 1].y << " " << v[v_size - 1].z << endl;
