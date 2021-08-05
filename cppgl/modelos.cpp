@@ -22,14 +22,13 @@ using namespace gl;
 	trans->y = height / 2-500;
 	modelImp::vect3 light = *new modelImp::vect3(0, 0, 1);
 	modelImp::obj* model = glLoadModel("models/gekota.obj", *trans, *scale, light, false);
-	scale->x = 1500;
-	scale->y = 1500;
-	trans->y = height / 2 - 500;
-	trans->x = 300;
+
+	trans->x = width-300;
 
 	if (model)
 		glLoadModel(model, *trans, *scale, light, false);
-	trans->x = width-300;
+
+	trans->x = 300;
 
 	if (model)
 		glLoadModel(model, *trans, *scale, light, false);

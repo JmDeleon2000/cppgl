@@ -26,99 +26,7 @@ float sqrDist(vert2 v1, vert2 v2)
 	return (v2.y - v1.y) * (v2.y - v1.y) + (v2.x - v1.x) * (v2.x - v1.x);
 }
 
-//https://www.geeksforgeeks.org/cpp-program-for-quicksort/
-//me dio hueva buscar documentación de std::sort
-void swap(vert2* a, vert2* b)
-{
-	vert2 t = *a;
-	*a = *b;
-	*b = t;
-}
 
-/* This function takes last element as pivot, places
-   the pivot element at its correct position in sorted
-	array, and places all smaller (smaller than pivot)
-   to left of pivot and all greater elements to right
-   of pivot */
-int partition(vert2 arr[], int low, int high)
-{
-	float pivot = arr[high].x;    // pivot
-	int i = (low - 1);  // Index of smaller element
-
-	for (int j = low; j <= high - 1; j++)
-	{
-		// If current element is smaller than or
-		// equal to pivot
-		if (arr[j].x <= pivot)
-		{
-			i++;    // increment index of smaller element
-			swap(&arr[i], &arr[j]);
-		}
-	}
-	swap(&arr[i + 1], &arr[high]);
-	return (i + 1);
-}
-
-/* The main function that implements QuickSort
- arr[] --> Array to be sorted,
-  low  --> Starting index,
-  high  --> Ending index */
-void quickSort(vert2 arr[], int low, int high)
-{
-	if (low < high)
-	{
-		/* pi is partitioning index, arr[p] is now
-		   at right place */
-		int pi = partition(arr, low, high);
-
-		// Separately sort elements before
-		// partition and after partition
-		quickSort(arr, low, pi - 1);
-		quickSort(arr, pi + 1, high);
-	}
-}
-
-void fillPoly(vert2* poly, int size) 
-{
-	vert2* triangle = new vert2[3];
-	float d1, d2, dist;
-	int index0 = 0, index1 = 1;
-	int i = 0, j;
-	quickSort(poly, 0, size-1);
-	while (i < size)
-	{
-		j = i+1;
-		d1 = 10000000.0f;
-		d2 = 10000000.0f;
-		while (j < size)
-		{
-			dist = sqrDist(poly[i], poly[j]);
-			if (dist < d1)
-			{
-				index1 = index0;
-				index0 = j;
-				d2 = d1;
-				d1 = dist;
-			}
-			if (dist < d2 && dist > d1)
-			{
-				index1 = j;
-				d2 = dist;
-			}
-			j++;
-			
-		}
-		//index0 = i + 1;
-		//index1 = i + 2;
-		triangle[0] = poly[i];
-		triangle[1] = poly[index0];
-		triangle[2] = poly[index1];
-		gl::fillTriangle(triangle);
-		
-		i++;
-	}
-	delete[] triangle;
-}
 
 
 void drawPoly(vert2* poly, int size) 
@@ -132,7 +40,7 @@ void drawPoly(vert2* poly, int size)
 	}
 }
 
-int main()
+/*int main()
 {
 	vert2* p1 = new vert2[10];
 	vert2* p2 = new vert2[4];
@@ -357,4 +265,4 @@ int main()
 
 	glFinish("polys.bmp", false);
 	return 0;
-}
+}*/

@@ -8,7 +8,7 @@ using namespace modelImp;
 
 
 #define pixel_size  3
-
+#define baryCentric true
 export namespace gl {
 
 	 float clamp01(float x)
@@ -403,6 +403,7 @@ export namespace gl {
 		 if ((v2.y - v1.y) == 0) return;
 		 if (abs((v2.y - v0.y)) test || abs((v2.y - v1.y))test) { gldraw_vertex(v0.x, v0.y, color); return; }
 
+
 		 vert2 p0, p1;
 		 p0.x = v2.x;
 		 p1.x = v2.x;
@@ -417,8 +418,82 @@ export namespace gl {
 		 }
 	 }
 
+	 void barycentricCords(vert2 A, vert2 B, vert2 C, vert2 P, vect3* out)
+	 {
+		 float u, v, w, ABC;
+
+		 ABC = (B.y - C.y) * (A.y - C.x) + (C.x + B.x) * (A.y - C.y);
+
+		 if (ABC == 0)
+		 {
+			 out->x = -1;
+			 out->y = -1;
+			 out->z = -1;
+			 return;
+		 }
+
+		 u = ((B.y - C.y) * (P.x - C.x) + (C.x - B.x) * (P.y - C.y)) / ABC;
+
+		 v = ((C.y - A.y) * (P.x - C.x) + (A.x - C.x) * (P.y - C.y)) / ABC;
+
+		 w = 1 - u - v;
+		 out->x = u;
+		 out->y = v;
+		 out->z = w;
+	 }
+
 	 void fillTriangle(vert2* triangle, col3* color = nullptr, bool randCol = false)
 	 {
+#if baryCentric
+		 vert2 A = triangle[0], B = triangle[1], C = triangle[2];
+		 int minX = A.x, maxX = A.x, minY = A.y, maxY = A.y;
+		 vert2 P;
+		 vect3* uvw = new vect3();
+		 col3* col = new col3();
+
+		 if (minX > B.x)
+			 minX = B.x;
+		 if (minX > C.x)
+			 minX = C.x;
+
+		 if (maxX < B.x)
+			 maxX = B.x;
+		 if (maxX < C.x)
+			 maxX = C.x;
+
+		 if (minY > B.y)
+			 minY = B.y;
+		 if (minY > C.y)
+			 minY = C.y;
+
+		 if (maxY < B.y)
+			 maxY = B.y;
+		 if (maxY < C.y)
+			 maxY = C.y;
+		 // sacar min y max
+
+		 int i = minX - 1, j;
+		 while (i++ < maxX)
+		 {
+			 j = minY - 1;
+			 while (j++ < maxY)
+			 {
+				 P.x = i;
+				 P.y = j;
+				 barycentricCords(A, B, C, P, uvw);
+				 if (uvw->z >= 0 && uvw->y >= 0 && uvw->x >= 0)
+				 {
+					 col->col[0] = (int)(clamp01(uvw->z) * 255);
+					 col->col[1] = (int)(clamp01(uvw->y) * 255);
+					 col->col[2] = (int)(clamp01(uvw->x) * 255);
+					 gldraw_vertex(i, j, col);
+				 }
+			 }
+		 }
+		 delete uvw;
+		 delete col;
+#else
+
 		 vert2 v0 = triangle[0], v1 = triangle[1], v2 = triangle[2];
 		 if (randCol) color = new col3(rand() / (float)RAND_MAX, rand() / (float)RAND_MAX, rand() / (float)RAND_MAX);
 		 vert2 temp;
@@ -461,7 +536,13 @@ export namespace gl {
 		 flatBotTriangle(v0, v1, temp, color);
 		 flatTopTriangle(v1, temp, v2, color);
 		 if (randCol) delete color;
+#endif
 	 }
+
+
+
+
+
 
 	 obj* glLoadModel(const char* filename, vert2 translate, vert2 scale, vect3 lightDir, bool discard = false)
 	{
@@ -489,8 +570,16 @@ export namespace gl {
 			}
 			//std::cout << j / 3 << "    " << success << "    " << i << std::endl;
 
-			if (light(normals, (j-3)/3, lightDir))
+			if (light(normals, (j - 3) / 3, lightDir))
+			{
 				fillTriangle(poly, nullptr, true);
+
+				if (model->f[i].size >= 3)
+				{
+					poly[1] = poly[3];
+					fillTriangle(poly, nullptr, true);
+				}
+			}
 			i++;
 		}
 		if (discard)
@@ -503,8 +592,8 @@ export namespace gl {
 
 	obj* glLoadModel(obj* model, vert2 translate, vert2 scale, vect3 lightDir, bool discard = false)
 	{
-		vert2* poly = new vert2[10];
-		vect3* normals = new vect3[10];
+		vert2 poly[10];
+		vect3 normals[10];
 		int i = 0, j;
 		bool  success = true;
 		while (i < model->f_size)
@@ -527,11 +616,17 @@ export namespace gl {
 			//std::cout << j / 3 << "    " << success << "    " << i << std::endl;
 
 			if (light(normals, (j - 3) / 3, lightDir))
+			{
 				fillTriangle(poly, nullptr, true);
+				if (model->f[i].size >= 3)
+				{
+					
+					fillTriangle(&poly[1], nullptr, true);
+				}
+			}
 			i++;
 		}
-		delete[] poly;
-		delete[] normals;
+
 		if (discard)
 		{
 			delete model;
@@ -540,6 +635,4 @@ export namespace gl {
 		return model;
 	}
 
-
-	
 }
