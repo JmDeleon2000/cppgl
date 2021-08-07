@@ -33,6 +33,12 @@
     <ClCompile Include="barycentric.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="flatShading.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="math.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="articMonkeys.bmp">

@@ -4,7 +4,10 @@
 #include <vector>
 
 export module ModelImporter;
+import hb_math;
+
 using namespace std;
+using namespace hb_math;
 
 
 #define importer_debug false
@@ -12,23 +15,7 @@ using namespace std;
 export namespace modelImp
 {
 
-	class vect3 {
-	public:
-		double  x, y, z;
-		vect3(double x, double y, double z)
-		{
-			vect3::x = x;
-			vect3::y = y;
-			vect3::z = z;
-		}
-		vect3() 
-		{
-			vect3::x = 0;
-			vect3::y = 0;
-			vect3::z = 0;
-		}
-		
-	};
+	
 
 	class face
 	{
@@ -71,19 +58,20 @@ export namespace modelImp
 			ifstream stream;
 			stream.open(file);
 			string line;
+			vect3 temp;
 
 			while (getline(stream, line))
 			{
 				if (line[0] == 'v' && line[1] != 't' && line[1] != 'n') //vert
-				{ 
+				{
 #if importer_debug
 					cout << line << endl;
 #endif
 					line.erase(0, 2);
 					double x = (double)atof(line.substr(0, line.find(" ")).c_str());
-					line.erase(0, line.find(" ")+1);
+					line.erase(0, line.find(" ") + 1);
 					double y = (double)atof(line.substr(0, line.find(" ")).c_str());
-					line.erase(0, line.find(" ")+1);
+					line.erase(0, line.find(" ") + 1);
 					double z = (double)atof(line.substr(0, line.find(" ")).c_str());
 #if importer_debug
 					cout << x << " " << y << " " << z << endl;
@@ -112,7 +100,7 @@ export namespace modelImp
 					continue;
 				}
 				if (line[0] == 'v' && line[1] == 'n') //normals
-				{					
+				{
 #if importer_debug
 					cout << line << endl;
 #endif
@@ -126,7 +114,7 @@ export namespace modelImp
 #if importer_debug
 					cout << x << " " << y << " " << z << endl;
 #endif // importer_debug
-					
+
 					n_temp.push_back(*new vect3(x, y, z));
 					continue;
 				}
@@ -217,6 +205,7 @@ export namespace modelImp
 			cout << endl;
 #endif
 
+			
 			stream.close();
 		}
 

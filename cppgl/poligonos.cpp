@@ -1,9 +1,10 @@
 import graphics;
-
+import hb_math;
+using namespace hb_math;
 using namespace gl;
 
 
-void trivialTriangle(vert2 v0, vert2 v1, vert2 v2)
+void trivialTriangle(vect2 v0, vect2 v1, vect2 v2)
 {
 	float m0, m1;
 	if (v0.x < v2.x)
@@ -21,7 +22,7 @@ void trivialTriangle(vert2 v0, vert2 v1, vert2 v2)
 
 
 
-float sqrDist(vert2 v1, vert2 v2) 
+float sqrDist(vect2 v1, vect2 v2) 
 {
 	return (v2.y - v1.y) * (v2.y - v1.y) + (v2.x - v1.x) * (v2.x - v1.x);
 }
@@ -29,7 +30,7 @@ float sqrDist(vert2 v1, vert2 v2)
 
 
 
-void drawPoly(vert2* poly, int size) 
+void drawPoly(vect2* poly, int size) 
 {
 	int i = 0;
 
@@ -42,12 +43,12 @@ void drawPoly(vert2* poly, int size)
 
 /*int main()
 {
-	vert2* p1 = new vert2[10];
-	vert2* p2 = new vert2[4];
-	vert2* p3 = new vert2[3];
-	vert2* p4 = new vert2[18];
-	vert2* p5 = new vert2[4];
-	vert2 v = *new vert2();
+	vect2* p1 = new vect2[10];
+	vect2* p2 = new vect2[4];
+	vect2* p3 = new vect2[3];
+	vect2* p4 = new vect2[18];
+	vect2* p5 = new vect2[4];
+	vect2 v = *new vect2();
 	{
 		{
 			v.x = 165;
@@ -185,7 +186,7 @@ void drawPoly(vert2* poly, int size)
 	fillTriangle(p3);
 
 	fillTriangle(p2);
-	vert2* temp = new vert2[3];
+	vect2* temp = new vect2[3];
 	temp[0] = p2[1];
 	p2[1] = p2[3];
 	fillTriangle(p2);

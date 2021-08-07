@@ -1,5 +1,7 @@
 #include <cmath>
 import graphics;
+import hb_math;
+using namespace hb_math;
 
 
 
@@ -10,10 +12,10 @@ using namespace gl;
 
 #define tau 6.28318
 
-void figure(int lines, vert2* init, int length) 
+void figure(int lines, vect2* init, int length) 
 {
 	const float angle = tau / (float)lines;
-	vert2* v1 = new vert2(), * v2 = new vert2();
+	vect2* v1 = new vect2(), * v2 = new vect2();
 	*v1 = *init;
 	float currAngle = angle;
 
@@ -41,7 +43,7 @@ void figure(int lines, vert2* init, int length)
 
 		set_draw_col(WHITE);
 		
-		vert2* v1 = new vert2(), * v2 = new vert2();
+		vect2* v1 = new vect2(), * v2 = new vect2();
 
 		v1->x = 10;
 		v1->y = 10;

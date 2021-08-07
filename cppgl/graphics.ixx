@@ -1,20 +1,28 @@
 #pragma warning(disable : 4996)
 #include <iostream>
 import ModelImporter;
+import hb_math;
+
 export module graphics;
 
 
 using namespace modelImp;
+using namespace hb_math;
 
 
 #define pixel_size  3
 #define baryCentric true
+
+
+
+
+
+
+
+
 export namespace gl {
 
-	 float clamp01(float x)
-	{
-		return x < 0.0f ? 0.0f : x > 1.0f ? 1.0f : x;
-	}
+
 
 	 class col3
 	{
@@ -37,19 +45,17 @@ export namespace gl {
 
 	};
 
-	 struct vert2
-	{
-		float x = 0;
-		float y = 0;
-	};
+	
 
 	col3* clear_col = new col3();
 	col3* draw_col = new col3();
 
-	 const col3* WHITE = new col3(1, 1, 1);
-	 const col3* BLACK = new col3();
+	 col3* WHITE = new col3(1, 1, 1);
+	 col3* BLACK = new col3();
+	 col3* maxZ;
 
 	col3** frameBuffer;
+	float** zBuffer;
 
 	int width = 0;
 	int height = 0;
@@ -72,18 +78,25 @@ export namespace gl {
 	}
 
 	 void glCreateWindow(int new_width = 1920, int new_height = 1080)
-	{
-		for (int i = 0; i < width; i++)
-			delete[] frameBuffer[i];
-		delete[] frameBuffer;
+	 {
+		 maxZ = new col3();
+		 maxZ->col[0] = maxZ->col[0] = maxZ->col[0] = -FLT_MAX;
+		 for (int i = 0; i < width; i++)
+			 delete[] frameBuffer[i];
+		 delete[] frameBuffer;
 
-		width = new_width;
-		height = new_height;
-		glCreateViewPort(0, 0, new_width, new_height);
-		frameBuffer = new col3 * [width];
-		for (int i = 0; i < width; i++)
-			frameBuffer[i] = new col3[height];
-	}
+		 width = new_width;
+		 height = new_height;
+		 glCreateViewPort(0, 0, new_width, new_height);
+		 frameBuffer = new col3 * [width];
+		 zBuffer = new float * [width];
+		 for (int i = 0; i < width; i++) 
+		 {
+			 frameBuffer[i] = new col3[height];
+			 zBuffer[i] = new float[height];
+		 }
+
+	 }
 
 	bool outOfBounds(int x, int y, int x0ff = 0, int y0ff = 0)
 	{
@@ -128,10 +141,41 @@ export namespace gl {
 		if (end_exec) exit(EXIT_SUCCESS);
 	}
 
+	 void glPrintZBuffer(const char* filename)
+	 {
+		 unsigned char header[14] = { 'B', 'M', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		 unsigned char headerinfo[40] = { 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 24, 0 };
+
+		 *(int*)(header + 2) = filesize;
+
+		 *(int*)(headerinfo + 4) = width;
+
+		 *(int*)(headerinfo + 8) = height;
+
+		 FILE* dump = fopen(filename, "wb");
+
+		 fwrite(header, 1, 14, dump);
+		 fwrite(headerinfo, 1, 40, dump);
+
+		 int i, j = 0;
+		 while (j < height)
+		 {
+			 i = 0;
+			 while (i < width)
+			 {//TODO
+				 fwrite(&zBuffer[i][j], 1, 3, dump);
+				 i++;
+			 }
+			 j++;
+		 }
+
+		 fclose(dump);
+	 }
+
 	 void clear()
 	{
 		int i = vp_x, j;
-
+		
 		while (i < vp_boundx)
 		{
 			j = vp_y;
@@ -139,6 +183,7 @@ export namespace gl {
 			{
 				if (outOfBounds(i, j)) { j++; continue; }
 				frameBuffer[i][j] = *clear_col;
+				zBuffer[i][j] = -FLT_MAX;
 				j++;
 			}
 			i++;
@@ -198,7 +243,7 @@ export namespace gl {
 	}
 
 
-	 void glLine(vert2* v1, vert2* v2, col3 *color = nullptr)
+	 void glLine(vect2* v1, vect2* v2, col3 *color = nullptr)
 	{
 		float x0 = v1->x;
 		float x1 = v2->x;
@@ -266,44 +311,11 @@ export namespace gl {
 		}
 	}
 
-	 bool light(vect3 n0, vect3 n1, vect3  dir) 
-	 {
-		 // cos(angulo) = a*b;
-		 if ((n0.x * dir.x + n0.y * dir.y + n0.z * dir.z) < 0) {  return false; }
-		 if ((n1.x * dir.x + n1.y * dir.y + n1.z * dir.z) < 0) {  return false; }
-		 return true;
-	 }
 
-	 bool light(vect3 n0,  vect3  dir)
-	 {
-		 // cos(angulo) = a*b;
-		 if ((n0.x * dir.x + n0.y * dir.y + n0.z * dir.z) < 0) { return false; }
-		 return true;
-	 }
-
-	 bool light(vect3 * n, int size, vect3  dir)
-	 {
-		 // cos(angulo) = a*b;
-		 int i = 0;
-		 float x = 0, y = 0, z = 0;
-		 while (i < size)
-		 {
-			 x += n[i].x;
-			 y += n[i].y;
-			 z += n[i].z;
-			 i++;
-		 }
-		 x /= size;
-		 y /= size;
-		 z /= size;
-		 if ((x * dir.x + y * dir.y + z * dir.z) < 0)  return false;
-		 return true;
-	 }
-
-	 /*void fillTriangle(vert2* triangle)
+	 /*void fillTriangle(vect2* triangle)
 	 {
 		 col3* color = new col3(rand() / (float)RAND_MAX, rand() / (float)RAND_MAX, rand() / (float)RAND_MAX);
-		 vert2 middle;
+		 vect2 middle;
 		 float highest, leftmost, rightmost;
 		 int lmi = 0, rmi = 0;
 
@@ -339,7 +351,7 @@ export namespace gl {
 		 }
 
 		 
-		 vert2 v1, v2;
+		 vect2 v1, v2;
 		 v1.y = triangle[lmi].y;
 		 v2.y = triangle[lmi].y;
 
@@ -372,7 +384,7 @@ export namespace gl {
 	 // naive triangle
 
 #define test < 1.0f
-	 void flatBotTriangle(vert2 v0, vert2 v1, vert2 v2, col3* color = nullptr)
+	 void flatBotTriangle(vect2 v0, vect2 v1, vect2 v2, col3* color = nullptr)
 	 {
 		 float d_10 = (v1.x - v0.x) / (v1.y - v0.y);
 		 float d_20 = (v2.x - v0.x) / (v2.y - v0.y);
@@ -381,7 +393,7 @@ export namespace gl {
 		 if ((v2.y - v0.y) == 0) return;
 		 if (abs((v1.y - v0.y)) test || abs((v2.y - v0.y))test) { gldraw_vertex(v0.x, v0.y, color); return; }
 
-		 vert2 p0, p1;
+		 vect2 p0, p1;
 		 p0.x = v1.x;
 		 p1.x = v2.x;
 		 int i = v1.y;
@@ -394,7 +406,7 @@ export namespace gl {
 			 p1.x += d_20;
 		 }
 	 }
-	 void flatTopTriangle(vert2 v0, vert2 v1, vert2 v2, col3* color = nullptr)
+	 void flatTopTriangle(vect2 v0, vect2 v1, vect2 v2, col3* color = nullptr)
 	 {
 		 float d_20 = (v2.x - v0.x) / (v2.y - v0.y);
 		 float d_21 = (v2.x - v1.x) / (v2.y - v1.y);
@@ -404,7 +416,7 @@ export namespace gl {
 		 if (abs((v2.y - v0.y)) test || abs((v2.y - v1.y))test) { gldraw_vertex(v0.x, v0.y, color); return; }
 
 
-		 vert2 p0, p1;
+		 vect2 p0, p1;
 		 p0.x = v2.x;
 		 p1.x = v2.x;
 		 int i = v2.y;
@@ -418,11 +430,11 @@ export namespace gl {
 		 }
 	 }
 
-	 void barycentricCords(vert2 A, vert2 B, vert2 C, vert2 P, vect3* out)
+	 void barycentricCords(vect2 A, vect2 B, vect2 C, vect2 P, vect3* out)
 	 {
 		 float u, v, w, ABC;
 
-		 ABC = (B.y - C.y) * (A.y - C.x) + (C.x + B.x) * (A.y - C.y);
+		 ABC = ((B.y - C.y) * (A.x - C.x) + (C.x - B.x) * (A.y - C.y)); //-+
 
 		 if (ABC == 0)
 		 {
@@ -442,15 +454,29 @@ export namespace gl {
 		 out->z = w;
 	 }
 
-	 void fillTriangle(vert2* triangle, col3* color = nullptr, bool randCol = false)
+	 void fillTriangle(vect3* triangle, col3* color = nullptr, bool randCol = false, float intensity = 0)
 	 {
 #if baryCentric
-		 vert2 A = triangle[0], B = triangle[1], C = triangle[2];
-		 int minX = A.x, maxX = A.x, minY = A.y, maxY = A.y;
-		 vert2 P;
-		 vect3* uvw = new vect3();
-		 col3* col = new col3();
+		 vect3 A = triangle[0], B = triangle[1], C = triangle[2], temp;
+		 vect2 Ap, Bp, Cp;
 
+		 Ap.x = A.x;
+		 Ap.y = A.y;
+		 Bp.x = B.x;
+		 Bp.y = B.y;
+		 Cp.x = C.x;
+		 Cp.y = C.y;
+
+		 int minX,  maxX, minY, maxY;
+		 float z;
+		 maxX = minX = A.x;
+		 maxY = minY = A.y;
+		 vect2 P;
+		 vect3* uvw = new vect3();
+		 col3* col = color;
+		 if (color == nullptr)
+			 col = new col3();
+		 
 		 if (minX > B.x)
 			 minX = B.x;
 		 if (minX > C.x)
@@ -466,11 +492,15 @@ export namespace gl {
 		 if (minY > C.y)
 			 minY = C.y;
 
+		 if (maxY < A.y)
+			 maxY = A.y;
 		 if (maxY < B.y)
 			 maxY = B.y;
 		 if (maxY < C.y)
 			 maxY = C.y;
 		 // sacar min y max
+
+
 
 		 int i = minX - 1, j;
 		 while (i++ < maxX)
@@ -480,23 +510,31 @@ export namespace gl {
 			 {
 				 P.x = i;
 				 P.y = j;
-				 barycentricCords(A, B, C, P, uvw);
+				 barycentricCords(Ap, Bp, Cp, P, uvw);
 				 if (uvw->z >= 0 && uvw->y >= 0 && uvw->x >= 0)
 				 {
-					 col->col[0] = (int)(clamp01(uvw->z) * 255);
-					 col->col[1] = (int)(clamp01(uvw->y) * 255);
-					 col->col[2] = (int)(clamp01(uvw->x) * 255);
-					 gldraw_vertex(i, j, col);
+					 z = A.z * uvw->x + B.z * uvw->y + C.z * uvw->z;
+					 if (z > zBuffer[i][j])
+					 {
+						 col->col[0] = (int)(intensity * 255);
+						 col->col[1] = (int)(intensity * 255);
+						 col->col[2] = (int)(intensity * 255);
+						 gldraw_vertex(i, j, col);
+						 zBuffer[i][j] = z;
+					 }
+					 
 				 }
 			 }
 		 }
+		 if (color == nullptr)
+			 delete col;
 		 delete uvw;
-		 delete col;
+
 #else
 
-		 vert2 v0 = triangle[0], v1 = triangle[1], v2 = triangle[2];
+		 vect2 v0 = triangle[0], v1 = triangle[1], v2 = triangle[2];
 		 if (randCol) color = new col3(rand() / (float)RAND_MAX, rand() / (float)RAND_MAX, rand() / (float)RAND_MAX);
-		 vert2 temp;
+		 vect2 temp;
 
 		 if (v0.y < v1.y)
 		 {
@@ -516,20 +554,20 @@ export namespace gl {
 			 v1 = v2;
 			 v2 = temp;
 		 }
-		 
-		 if (v1.y == v2.y) 
-		 { 
-			 flatBotTriangle(v0, v1, v2, color); 
+
+		 if (v1.y == v2.y)
+		 {
+			 flatBotTriangle(v0, v1, v2, color);
 			 if (randCol) delete color;
-			 return; 
+			 return;
 		 }
-		 if (v0.y == v1.y) 
-		 { 
-			 flatTopTriangle(v0, v1, v2, color); 
-			 if (randCol)delete color; 
-			 return; 
+		 if (v0.y == v1.y)
+		 {
+			 flatTopTriangle(v0, v1, v2, color);
+			 if (randCol)delete color;
+			 return;
 		 }
-		 
+
 		 temp.y = v1.y;
 		 temp.x = v0.x + ((v1.y - v0.y) / (v2.y - v0.y)) * (v2.x - v0.x);
 		 //if ((v2.y - v0.y) == 0) return;
@@ -544,12 +582,15 @@ export namespace gl {
 
 
 
-	 obj* glLoadModel(const char* filename, vert2 translate, vert2 scale, vect3 lightDir, bool discard = false)
+	 obj* glLoadModel(const char* filename, vect3 translate, vect3 scale, vect3 lightDir, bool discard = false)
 	{
 		obj* model = new obj(filename);
-		vert2 poly[10];
-		vect3 normals[10];
+		vect3 poly[10];
+		vect3 *normal, ab, ac;
+		normal = new vect3();
+
 		int i = 0, j;
+		float intensity;
 		bool  success = true;
 		while (i < model->f_size)
 		{
@@ -558,30 +599,38 @@ export namespace gl {
 			{
 				vect3 v1 = model->v[model->f[i].data[j] - 1];
 				
+
 				poly[j / 3].x = v1.x * scale.x + translate.x;
 				poly[j / 3].y = v1.y * scale.y + translate.y;
-				vect3 n0 = model->n[model->f[i].data[(j + 2) % model->f[i].size] - 1];
-				
-
-				normals[j / 3] = n0;
-				
+				poly[j / 3].z = v1.z * scale.z + translate.z;
 
 				j += 3;
 			}
-			//std::cout << j / 3 << "    " << success << "    " << i << std::endl;
+			ab.x = poly[1].x - poly[0].x;
+			ab.y = poly[1].y - poly[0].y;
+			ab.z = poly[1].z - poly[0].z;
 
-			if (light(normals, (j - 3) / 3, lightDir))
+			ac.x = poly[2].x - poly[0].x;
+			ac.y = poly[2].y - poly[0].y;
+			ac.z = poly[2].z - poly[0].z;
+
+			R3_cross(ab, ac, normal);
+			normalize(normal);
+			intensity = dot(*normal, lightDir);
+			intensity = clamp01(intensity);
+
+			fillTriangle(poly, nullptr, true, intensity);
+
+			if (model->f[i].size >= 3)
 			{
-				fillTriangle(poly, nullptr, true);
-
-				if (model->f[i].size >= 3)
-				{
-					poly[1] = poly[3];
-					fillTriangle(poly, nullptr, true);
-				}
+				poly[1] = poly[3];
+				fillTriangle(poly, nullptr, true, intensity);
 			}
+			
 			i++;
 		}
+		delete normal;
+
 		if (discard)
 		{
 			delete model;
@@ -590,11 +639,14 @@ export namespace gl {
 		return model;
 	}
 
-	obj* glLoadModel(obj* model, vert2 translate, vert2 scale, vect3 lightDir, bool discard = false)
+	obj* glLoadModel(obj* model, vect3 translate, vect3 scale, vect3 lightDir, bool discard = false)
 	{
-		vert2 poly[10];
-		vect3 normals[10];
+		vect3 poly[10];
+		vect3* normal, ab, ac;
+		normal = new vect3();
+
 		int i = 0, j;
+		float intensity;
 		bool  success = true;
 		while (i < model->f_size)
 		{
@@ -603,29 +655,37 @@ export namespace gl {
 			{
 				vect3 v1 = model->v[model->f[i].data[j] - 1];
 
+
 				poly[j / 3].x = v1.x * scale.x + translate.x;
 				poly[j / 3].y = v1.y * scale.y + translate.y;
-				vect3 n0 = model->n[model->f[i].data[(j + 2) % model->f[i].size] - 1];
-
-
-				normals[j / 3] = n0;
-
+				poly[j / 3].z = v1.z * scale.z + translate.z;
 
 				j += 3;
 			}
-			//std::cout << j / 3 << "    " << success << "    " << i << std::endl;
+			ab.x = poly[1].x - poly[0].x;
+			ab.y = poly[1].y - poly[0].y;
+			ab.z = poly[1].z - poly[0].z;
 
-			if (light(normals, (j - 3) / 3, lightDir))
+			ac.x = poly[2].x - poly[0].x;
+			ac.y = poly[2].y - poly[0].y;
+			ac.z = poly[2].z - poly[0].z;
+
+			R3_cross(ab, ac, normal);
+			normalize(normal);
+			intensity = dot(*normal, lightDir);
+			intensity = clamp01(intensity);
+
+			fillTriangle(poly, nullptr, true, intensity);
+
+			if (model->f[i].size >= 3)
 			{
-				fillTriangle(poly, nullptr, true);
-				if (model->f[i].size >= 3)
-				{
-					
-					fillTriangle(&poly[1], nullptr, true);
-				}
+				poly[1] = poly[3];
+				fillTriangle(poly, nullptr, true, intensity);
 			}
+
 			i++;
 		}
+		delete normal;
 
 		if (discard)
 		{
