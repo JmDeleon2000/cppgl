@@ -219,4 +219,76 @@ export namespace modelImp
 			delete[] f;
 		}
 	};
+
+	class col3
+	{
+	public:
+		unsigned char col[3];
+
+		col3()
+		{
+			this->col[0] = 0;
+			this->col[1] = 0;
+			this->col[2] = 0;
+		}
+
+		col3(float r, float g, float b)
+		{
+			this->col[0] = (int)(clamp01(b) * 255);
+			this->col[1] = (int)(clamp01(g) * 255);
+			this->col[2] = (int)(clamp01(r) * 255);
+		}
+
+	};
+
+	class texture 
+	{
+	public:
+		int width = 0;
+		int height = 0;
+		col3** image;
+
+		texture(const char* filename) 
+		{
+			int headerSize;
+			ifstream text;
+			text.open(filename, ios::binary);
+			
+			text.seekg(10);
+			text.read((char*)&headerSize, 4);
+			text.seekg(18);
+			text.read((char*)&width, 4);
+			text.read((char*)&height, 4);
+			text.seekg(headerSize);
+			image = new col3*[height];
+
+			int i  = 0, j;
+			while (i < width)
+			{
+				j = 0;
+				image[i] = new col3[width];
+				while (j < height)
+				{
+					//image[i][j] = *new col3();
+					text.read((char*)image[i][j].col, 3);
+					j++;
+				}
+				i++;
+			}
+			text.close();
+		}
+
+		void getColor(float x, float y, unsigned char* out)
+		{
+			if (!out)return;
+			int j = (int)x;
+			int i = (int)y;
+			if (i >= 0 && i < width && j >= 0 && j < height)
+			{
+				out[0] = image[i][j].col[0];
+				out[1] = image[i][j].col[1];
+				out[2] = image[i][j].col[2];
+			}
+		}
+	};
 }

@@ -8,7 +8,7 @@ using namespace hb_math;
 using namespace std::chrono;
 using namespace gl;
 
-/*int main()
+int main()
 {
 	auto start = high_resolution_clock::now();
 	const int width = 1920;
@@ -24,23 +24,24 @@ using namespace gl;
 	trans->y = height / 2 - 500;
 	trans->z = 0;
 	vect3 light = *new vect3();
+	modelImp::texture* gradient = new modelImp::texture("texture.bmp");
 	light.x = 0;
 	light.y = 0;
 	light.z = 1;
-	modelImp::obj* model = glLoadModel("models/gekota.obj", *trans, *scale, light, false);
+	modelImp::obj* model = glLoadModel("models/gekota.obj", *trans, *scale, light, gradient, false);
 
 	trans->x = width - 300;
 
 	if (model)
-		glLoadModel(model, *trans, *scale, light, false);
+		glLoadModel(model, *trans, *scale, light, gradient, false);
 
 	trans->x = 300;
 
 	if (model)
-		glLoadModel(model, *trans, *scale, light, false);
+		glLoadModel(model, *trans, *scale, light, gradient, false);
 	glFinish("flatShading.bmp", false);
 	auto stop = high_resolution_clock::now();
 	auto duration = duration_cast<seconds>(stop - start);
 	std::cout << "Execution time: " << duration.count() << " seconds" << std::endl;
 	return 0;
-}*/
+}

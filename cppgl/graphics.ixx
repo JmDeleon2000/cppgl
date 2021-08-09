@@ -24,7 +24,7 @@ export namespace gl {
 
 
 
-	 class col3
+	class col3
 	{
 	public:
 		unsigned char col[3];
@@ -454,7 +454,7 @@ export namespace gl {
 		 out->z = w;
 	 }
 
-	 void fillTriangle(vect3* triangle, col3* color = nullptr, bool randCol = false, float intensity = 0)
+	 void fillTriangle(vect3* triangle, col3* color = nullptr, bool randCol = false, float intensity = 0, texture * t = nullptr, vect3* texcords = nullptr)
 	 {
 #if baryCentric
 		 vect3 A = triangle[0], B = triangle[1], C = triangle[2], temp;
@@ -469,6 +469,8 @@ export namespace gl {
 
 		 int minX,  maxX, minY, maxY;
 		 float z;
+		 unsigned char tcol[3];
+		 tcol[0] = tcol[1] = tcol[2] = 0;
 		 maxX = minX = A.x;
 		 maxY = minY = A.y;
 		 vect2 P;
@@ -500,7 +502,15 @@ export namespace gl {
 			 maxY = C.y;
 		 // sacar min y max
 
+		 if (minX < vp_x)
+			 minX = vp_x;
+		 if (minY < vp_y)
+			 minY = vp_y;
 
+		 if (maxX > vp_boundx)
+			 maxX = vp_boundx;
+		 if (maxY > vp_boundy)
+			 maxY = vp_boundy;
 
 		 int i = minX - 1, j;
 		 while (i++ < maxX)
@@ -516,11 +526,17 @@ export namespace gl {
 					 z = A.z * uvw->x + B.z * uvw->y + C.z * uvw->z;
 					 if (z > zBuffer[i][j])
 					 {
-						 col->col[0] = (int)(intensity * 255);
-						 col->col[1] = (int)(intensity * 255);
-						 col->col[2] = (int)(intensity * 255);
-						 gldraw_vertex(i, j, col);
-						 zBuffer[i][j] = z;
+						 if (t && texcords) // calculates the uvs							 
+							 t->getColor(i * (texcords[0].x * uvw->x + texcords[1].x * uvw->y + texcords[2].x * uvw->z)
+								 , j * (texcords[0].y * uvw->x + texcords[1].y * uvw->y + texcords[2].y * uvw->z)
+								 , tcol);
+						 
+						 
+						 col->col[0] = (int)(intensity * tcol[0] * 255);
+						 col->col[1] = (int)(intensity * tcol[1] * 255);
+						 col->col[2] = (int)(intensity * tcol[2] * 255);
+						 gldraw_vertex(P.x, P.y, col);
+						 zBuffer[(int)P.x][(int)P.y] = z;
 					 }
 					 
 				 }
@@ -582,11 +598,11 @@ export namespace gl {
 
 
 
-	 obj* glLoadModel(const char* filename, vect3 translate, vect3 scale, vect3 lightDir, bool discard = false)
+	 obj* glLoadModel(const char* filename, vect3 translate, vect3 scale, vect3 lightDir, texture* text = nullptr, bool discard = false)
 	{
 		obj* model = new obj(filename);
 		vect3 poly[10];
-		vect3 *normal, ab, ac;
+		vect3 *normal, ab, ac, texcords[10];
 		normal = new vect3();
 
 		int i = 0, j;
@@ -598,11 +614,15 @@ export namespace gl {
 			while (j < model->f[i].size)
 			{
 				vect3 v1 = model->v[model->f[i].data[j] - 1];
-				
+				vect3 uv = model->uvs[model->f[i].data[(j+1) % model->f[i].size] - 1];
 
 				poly[j / 3].x = v1.x * scale.x + translate.x;
 				poly[j / 3].y = v1.y * scale.y + translate.y;
 				poly[j / 3].z = v1.z * scale.z + translate.z;
+
+				texcords[j / 3].x = uv.x;
+				texcords[j / 3].y = uv.y;
+				texcords[j / 3].z = uv.z;
 
 				j += 3;
 			}
@@ -619,18 +639,19 @@ export namespace gl {
 			intensity = dot(*normal, lightDir);
 			intensity = clamp01(intensity);
 
-			fillTriangle(poly, nullptr, true, intensity);
+			fillTriangle(poly, nullptr, true, intensity, text, texcords);
 
 			if (model->f[i].size >= 3)
 			{
 				poly[1] = poly[3];
-				fillTriangle(poly, nullptr, true, intensity);
+				texcords[1] = texcords[3];
+				fillTriangle(poly, nullptr, true, intensity, text, texcords);
 			}
 			
 			i++;
 		}
 		delete normal;
-
+		
 		if (discard)
 		{
 			delete model;
@@ -639,10 +660,10 @@ export namespace gl {
 		return model;
 	}
 
-	obj* glLoadModel(obj* model, vect3 translate, vect3 scale, vect3 lightDir, bool discard = false)
+	obj* glLoadModel(obj* model, vect3 translate, vect3 scale, vect3 lightDir, texture* text = nullptr, bool discard = false)
 	{
 		vect3 poly[10];
-		vect3* normal, ab, ac;
+		vect3* normal, ab, ac, texcords[10];
 		normal = new vect3();
 
 		int i = 0, j;
@@ -654,11 +675,15 @@ export namespace gl {
 			while (j < model->f[i].size)
 			{
 				vect3 v1 = model->v[model->f[i].data[j] - 1];
-
+				vect3 uv = model->uvs[model->f[i].data[(j + 1) % model->f[i].size] - 1];
 
 				poly[j / 3].x = v1.x * scale.x + translate.x;
 				poly[j / 3].y = v1.y * scale.y + translate.y;
 				poly[j / 3].z = v1.z * scale.z + translate.z;
+
+				texcords[j / 3].x = uv.x;
+				texcords[j / 3].y = uv.y;
+				texcords[j / 3].z = uv.z;
 
 				j += 3;
 			}
@@ -675,12 +700,13 @@ export namespace gl {
 			intensity = dot(*normal, lightDir);
 			intensity = clamp01(intensity);
 
-			fillTriangle(poly, nullptr, true, intensity);
+			fillTriangle(poly, nullptr, true, intensity, text, texcords);
 
 			if (model->f[i].size >= 3)
 			{
 				poly[1] = poly[3];
-				fillTriangle(poly, nullptr, true, intensity);
+				texcords[1] = texcords[3];
+				fillTriangle(poly, nullptr, true, intensity, text, texcords);
 			}
 
 			i++;

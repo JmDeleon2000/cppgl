@@ -8,7 +8,7 @@ using namespace hb_math;
 using namespace std::chrono;
 using namespace gl;
 
-int main()
+/*int main()
 {
 	auto start = high_resolution_clock::now();
 	const int width = 1920;
@@ -43,4 +43,4 @@ int main()
 	auto duration = duration_cast<seconds>(stop - start);
 	std::cout << "Execution time: " << duration.count() << " seconds" << std::endl;
 	return 0;
-}
+}*/

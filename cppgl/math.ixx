@@ -26,11 +26,14 @@ export namespace hb_math
 
 	};
 
-
 	float clamp01(float x)
 	{
 		return x < 0.0f ? 0.0f : x > 1.0f ? 1.0f : x;
 	}
+
+	
+
+
 
 	float R2_cross(vect2 a, vect2 b) 
 	{
