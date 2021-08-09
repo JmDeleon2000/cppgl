@@ -281,8 +281,8 @@ export namespace modelImp
 		void getColor(float x, float y, unsigned char* out)
 		{
 			if (!out)return;
-			int j = (int)x;
-			int i = (int)y;
+			int i = (int)x;
+			int j = (int)y;
 			if (i >= 0 && i < width && j >= 0 && j < height)
 			{
 				out[0] = image[i][j].col[0];

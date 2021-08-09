@@ -470,7 +470,7 @@ export namespace gl {
 		 int minX,  maxX, minY, maxY;
 		 float z;
 		 unsigned char tcol[3];
-		 tcol[0] = tcol[1] = tcol[2] = 0;
+		 tcol[0] = tcol[1] = tcol[2] = 255;
 		 maxX = minX = A.x;
 		 maxY = minY = A.y;
 		 vect2 P;
@@ -527,8 +527,8 @@ export namespace gl {
 					 if (z > zBuffer[i][j])
 					 {
 						 if (t && texcords) // calculates the uvs							 
-							 t->getColor(i * (texcords[0].x * uvw->x + texcords[1].x * uvw->y + texcords[2].x * uvw->z)
-								 , j * (texcords[0].y * uvw->x + texcords[1].y * uvw->y + texcords[2].y * uvw->z)
+							 t->getColor((texcords[0].x * uvw->x + texcords[1].x * uvw->y + texcords[2].x * uvw->z)
+								 , (texcords[0].y * uvw->x + texcords[1].y * uvw->y + texcords[2].y * uvw->z)
 								 , tcol);
 						 
 						 
@@ -633,6 +633,8 @@ export namespace gl {
 			ac.x = poly[2].x - poly[0].x;
 			ac.y = poly[2].y - poly[0].y;
 			ac.z = poly[2].z - poly[0].z;
+
+
 
 			R3_cross(ab, ac, normal);
 			normalize(normal);
