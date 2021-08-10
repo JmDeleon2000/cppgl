@@ -262,7 +262,7 @@ export namespace modelImp
 			text.seekg(headerSize);
 			image = new col3*[height];
 
-			int i  = 0, j;
+			int i = 0, j;
 			while (i < width)
 			{
 				j = 0;
@@ -278,7 +278,7 @@ export namespace modelImp
 			text.close();
 		}
 
-		void getColor(float x, float y, unsigned char* out)
+		void getColor(float x, float y, float* out)
 		{
 			if (!out)return;
 			int i = (int)x;

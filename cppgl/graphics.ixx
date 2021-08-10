@@ -469,7 +469,7 @@ export namespace gl {
 
 		 int minX,  maxX, minY, maxY;
 		 float z;
-		 unsigned char tcol[3];
+		 float tcol[3];
 		 tcol[0] = tcol[1] = tcol[2] = 255;
 		 maxX = minX = A.x;
 		 maxY = minY = A.y;
@@ -527,14 +527,14 @@ export namespace gl {
 					 if (z > zBuffer[i][j])
 					 {
 						 if (t && texcords) // calculates the uvs							 
-							 t->getColor((texcords[0].x * uvw->x + texcords[1].x * uvw->y + texcords[2].x * uvw->z)
-								 , (texcords[0].y * uvw->x + texcords[1].y * uvw->y + texcords[2].y * uvw->z)
+							 t->getColor(t->height * (texcords[0].y * uvw->x + texcords[1].y * uvw->y + texcords[2].y * uvw->z), 
+								 t->width * (texcords[0].x * uvw->x + texcords[1].x * uvw->y + texcords[2].x * uvw->z)
 								 , tcol);
 						 
 						 
-						 col->col[0] = (int)(intensity * tcol[0] * 255);
-						 col->col[1] = (int)(intensity * tcol[1] * 255);
-						 col->col[2] = (int)(intensity * tcol[2] * 255);
+						 col->col[0] = (int)(intensity * tcol[2]);
+						 col->col[1] = (int)(intensity * tcol[1]);
+						 col->col[2] = (int)(intensity * tcol[0]);
 						 gldraw_vertex(P.x, P.y, col);
 						 zBuffer[(int)P.x][(int)P.y] = z;
 					 }
@@ -642,8 +642,8 @@ export namespace gl {
 			intensity = clamp01(intensity);
 
 			fillTriangle(poly, nullptr, true, intensity, text, texcords);
-
-			if (model->f[i].size >= 3)
+			
+			if (model->f[i].size >= 12)
 			{
 				poly[1] = poly[3];
 				texcords[1] = texcords[3];
@@ -697,6 +697,8 @@ export namespace gl {
 			ac.y = poly[2].y - poly[0].y;
 			ac.z = poly[2].z - poly[0].z;
 
+
+
 			R3_cross(ab, ac, normal);
 			normalize(normal);
 			intensity = dot(*normal, lightDir);
@@ -704,7 +706,7 @@ export namespace gl {
 
 			fillTriangle(poly, nullptr, true, intensity, text, texcords);
 
-			if (model->f[i].size >= 3)
+			if (model->f[i].size >= 12)
 			{
 				poly[1] = poly[3];
 				texcords[1] = texcords[3];

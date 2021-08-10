@@ -21,8 +21,8 @@ int main()
 	scale->y = 1500;
 	scale->z = 1500;
 	trans->x = width / 2;
-	trans->y = height / 2 -500;
-	trans->z = 0;
+	trans->y = height / 2-500;
+	trans->z = height;
 	vect3 light = *new vect3();
 	modelImp::texture* gradient = new modelImp::texture("texture.bmp");
 	light.x = 0;
@@ -31,14 +31,14 @@ int main()
 	modelImp::obj* model = glLoadModel("models/gekota.obj", *trans, *scale, light, gradient, false);
 
 	trans->x = width - 300;
-/*
+
 	if (model)
-		glLoadModel(model, *trans, *scale, light, nullptr, false);
+		glLoadModel(model, *trans, *scale, light, gradient, false);
 
 	trans->x = 300;
 
 	if (model)
-		glLoadModel(model, *trans, *scale, light, nullptr, false);*/
+		glLoadModel(model, *trans, *scale, light, gradient, false);
 	glFinish("flatShading.bmp", false);
 	auto stop = high_resolution_clock::now();
 	auto duration = duration_cast<seconds>(stop - start);
