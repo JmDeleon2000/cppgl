@@ -279,13 +279,24 @@ export namespace modelImp
 		void getColor(float x, float y, float* out)
 		{
 			if (!out)return;
-			int i = (int)x;
-			int j = (int)y;
-			if (i >= 0 && i < width && j >= 0 && j < height)
+			float r;
+			if (x < 0)
+				x = 1+modf(x, &r);
+			if (x > 1)
+				x = modf(x, &r);
+			if (y < 0)
+				y = 1 + modf(y, &r);
+			if (y > 1)
+				y = modf(y, &r);
+			int i = (int)(x * height);
+			int j = (int)(y * width);
+			
+
+			if (i < width &&  j < height)
 			{
-				out[0] = image[i][j].col[0];
+				out[0] = image[i][j].col[2];
 				out[1] = image[i][j].col[1];
-				out[2] = image[i][j].col[2];
+				out[2] = image[i][j].col[0];
 			}
 		}
 	};

@@ -43,6 +43,20 @@ export namespace gl {
 			this->col[2] = (int)(clamp01(r) * 255);
 		}
 
+		unsigned char& operator[](int index)
+		{
+			switch (index)
+			{
+			case 0:
+				return col[2];
+			case 1:
+				return col[1];
+			case 2:
+				return col[0];
+			default:
+				return col[2];
+			}
+		}
 	};
 
 	
@@ -527,14 +541,14 @@ export namespace gl {
 					 if (z > zBuffer[i][j])
 					 {
 						 if (t && texcords) // calculates the uvs							 
-							 t->getColor(t->height * (texcords[0].y * uvw->x + texcords[1].y * uvw->y + texcords[2].y * uvw->z), 
-								 t->width * (texcords[0].x * uvw->x + texcords[1].x * uvw->y + texcords[2].x * uvw->z)
+							 t->getColor( (texcords[0].y * uvw->x + texcords[1].y * uvw->y + texcords[2].y * uvw->z), 
+								 (texcords[0].x * uvw->x + texcords[1].x * uvw->y + texcords[2].x * uvw->z)
 								 , tcol);
 						 
 						 
-						 col->col[0] = (int)(intensity * tcol[2]);
-						 col->col[1] = (int)(intensity * tcol[1]);
-						 col->col[2] = (int)(intensity * tcol[0]);
+						 (*col)[0] = (int)(intensity * tcol[0]);
+						 (*col)[1] = (int)(intensity * tcol[1]);
+						 (*col)[2] = (int)(intensity * tcol[2]);
 						 gldraw_vertex(P.x, P.y, col);
 						 zBuffer[(int)P.x][(int)P.y] = z;
 					 }
@@ -602,8 +616,8 @@ export namespace gl {
 	{
 		obj* model = new obj(filename);
 		vect3 poly[10];
-		vect3 *normal, ab, ac, texcords[10];
-		normal = new vect3();
+		vect3 normal,  texcords[10];
+
 
 		int i = 0, j;
 		float intensity;
@@ -626,19 +640,10 @@ export namespace gl {
 
 				j += 3;
 			}
-			ab.x = poly[1].x - poly[0].x;
-			ab.y = poly[1].y - poly[0].y;
-			ab.z = poly[1].z - poly[0].z;
 
-			ac.x = poly[2].x - poly[0].x;
-			ac.y = poly[2].y - poly[0].y;
-			ac.z = poly[2].z - poly[0].z;
+			normal = !((poly[1] - poly[0]) * (poly[2] - poly[0]));
 
-
-
-			R3_cross(ab, ac, normal);
-			normalize(normal);
-			intensity = dot(*normal, lightDir);
+			intensity = normal ^ lightDir;
 			intensity = clamp01(intensity);
 
 			fillTriangle(poly, nullptr, true, intensity, text, texcords);
@@ -652,7 +657,7 @@ export namespace gl {
 			
 			i++;
 		}
-		delete normal;
+		
 		
 		if (discard)
 		{
@@ -665,8 +670,8 @@ export namespace gl {
 	obj* glLoadModel(obj* model, vect3 translate, vect3 scale, vect3 lightDir, texture* text = nullptr, bool discard = false)
 	{
 		vect3 poly[10];
-		vect3* normal, ab, ac, texcords[10];
-		normal = new vect3();
+		vect3 normal, texcords[10];
+
 
 		int i = 0, j;
 		float intensity;
@@ -689,19 +694,10 @@ export namespace gl {
 
 				j += 3;
 			}
-			ab.x = poly[1].x - poly[0].x;
-			ab.y = poly[1].y - poly[0].y;
-			ab.z = poly[1].z - poly[0].z;
 
-			ac.x = poly[2].x - poly[0].x;
-			ac.y = poly[2].y - poly[0].y;
-			ac.z = poly[2].z - poly[0].z;
+			normal = !((poly[1] - poly[0]) * (poly[2] - poly[0]));
 
-
-
-			R3_cross(ab, ac, normal);
-			normalize(normal);
-			intensity = dot(*normal, lightDir);
+			intensity = normal ^ lightDir;
 			intensity = clamp01(intensity);
 
 			fillTriangle(poly, nullptr, true, intensity, text, texcords);
@@ -715,7 +711,6 @@ export namespace gl {
 
 			i++;
 		}
-		delete normal;
 
 		if (discard)
 		{
