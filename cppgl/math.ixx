@@ -8,22 +8,10 @@ export namespace hb_math
 		float y = 0;
 	};
 
-	class vect3 {
-	public:
-		double  x, y, z;
-		vect3(double x, double y, double z)
-		{
-			vect3::x = x;
-			vect3::y = y;
-			vect3::z = z;
-		}
-		vect3()
-		{
-			vect3::x = 0;
-			vect3::y = 0;
-			vect3::z = 0;
-		}
-
+	struct vect3 {
+	
+		double  x = 0, y = 0, z = 0;
+		
 	};
 
 	float clamp01(float x)

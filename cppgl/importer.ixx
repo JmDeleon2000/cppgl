@@ -17,22 +17,11 @@ export namespace modelImp
 
 	
 
-	class face
+	struct face
 	{
 		public:
 			int size;
 			int *data;
-			face() 
-			{
-				size = 0;
-				data = nullptr;
-			}
-			face(int size, int* data) 
-			{
-				face::size = size;
-				face::data = data;
-			}
-
 	};
 	
 	class obj
@@ -76,8 +65,11 @@ export namespace modelImp
 #if importer_debug
 					cout << x << " " << y << " " << z << endl;
 #endif // importer_debug
+					temp.x = x;
+					temp.y = y;
+					temp.z = z;
 
-					v_temp.push_back(*new vect3(x, y, z));
+					v_temp.push_back(temp);
 					continue;
 				}
 				if (line[0] == 'v' && line[1] == 't') //uv
@@ -95,8 +87,11 @@ export namespace modelImp
 #if importer_debug
 					cout << x << " " << y << " " << z << endl;
 #endif // importer_debug
+					temp.x = x;
+					temp.y = y;
+					temp.z = z;
 
-					uvs_temp.push_back(*new vect3(x, y, z));
+					uvs_temp.push_back(temp);
 					continue;
 				}
 				if (line[0] == 'v' && line[1] == 'n') //normals
@@ -114,8 +109,11 @@ export namespace modelImp
 #if importer_debug
 					cout << x << " " << y << " " << z << endl;
 #endif // importer_debug
+					temp.x = x;
+					temp.y = y;
+					temp.z = z;
 
-					n_temp.push_back(*new vect3(x, y, z));
+					n_temp.push_back(temp);
 					continue;
 				}
 				if (line[0] == 'f') //faces
