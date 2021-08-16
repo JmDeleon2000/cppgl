@@ -14,7 +14,7 @@ using namespace gl;
 
 void figure(int lines, vect2* init, int length) 
 {
-	const float angle = tau / (float)lines;
+	const float angle = tau / (double)lines;
 	vect2* v1 = new vect2(), * v2 = new vect2();
 	*v1 = *init;
 	float currAngle = angle;

@@ -37,6 +37,7 @@ export namespace hb_math
 				return x;
 			}
 		}
+
 	};
 
 	float clamp01(float x)
@@ -64,6 +65,24 @@ export namespace hb_math
 				return x;
 			}
 		}
+
+		vect4 operator=(const vect4& a) 
+		{
+			x = a.x;
+			y = a.y;
+			z = a.z;
+			w = a.w;
+			return *this;
+		}
+
+		vect4 operator=(const vect3& a)
+		{
+			x = a.x;
+			y = a.y;
+			z = a.z;
+			w = 1;
+			return *this;
+		}
 	};
 
 	struct M4x4
@@ -74,19 +93,24 @@ export namespace hb_math
 			return m[index];
 		}
 
-		M4x4& operator=(const M4x4& a)
+
+
+		M4x4 operator=(const char& mode) 
 		{
-			
-			int i = 0, j;
-			while (i < 4)
+			if (mode == 'I') //identity
 			{
-				j = 0;
-				while (j < 4)
+				int i = 0, j;
+				while (i < 4)
 				{
-					m[i][j] = a.m[i][j];
-					j++;
+					j = 0;
+					while (j < 4)
+					{
+						m[i][j] = 0;
+						j++;
+					}
+					m[i][i] = 1;
+					i++;
 				}
-				i++;
 			}
 			return *this;
 		}
@@ -100,7 +124,7 @@ export namespace hb_math
 		int i = 0;
 		while (i < 16)
 		{
-			result[i / 4] += ((M4x4)a)[i % 4][i / 4] * ((vect4)b)[i % 4];
+			result[i / 4] += ((M4x4)a)[i / 4][i % 4] * ((vect4)b)[i % 4];
 			i++;
 		}
 		return result;
@@ -111,15 +135,32 @@ export namespace hb_math
 	{
 		M4x4 result;
 
-
 		int i = 0, j;
 		while (i < 16)
 		{
-			result[i % 4][i / 4] = 0;
+			result[i / 4][i % 4] = 0;
 			j = 0;
 			while (j < 4)
 			{
-				result[i % 4][i / 4] += ((M4x4)a)[j][i / 4] * ((M4x4)b)[i % 4][j];
+				result[i / 4][i % 4] += ((M4x4)a)[i / 4][j] * ((M4x4)b)[j][i % 4];
+				j++;
+			}
+			i++;
+		}
+		return result;
+	}
+
+	M4x4 operator*(const M4x4& a, const float& b)
+	{
+		M4x4 result;
+
+		int i = 0, j;
+		while (i < 4)
+		{
+			j = 0;
+			while (j < 4)
+			{
+				result[i][j] = ((M4x4)a)[i][j] * b;
 				j++;
 			}
 			i++;
@@ -140,6 +181,79 @@ export namespace hb_math
 				result[i][j] = ((M4x4)a)[i][j] + ((M4x4)b)[i][j];
 				j++;
 			}
+			i++;
+		}
+		return result;
+	}
+
+	M4x4 operator-(const M4x4& a, const M4x4& b)
+	{
+		M4x4 result;
+
+		int i = 0, j;
+		while (i < 4)
+		{
+			j = 0;
+			while (j < 4)
+			{
+				result[i][j] = ((M4x4)a)[i][j] - ((M4x4)b)[i][j];
+				j++;
+			}
+			i++;
+		}
+		return result;
+	}
+
+
+	M4x4 operator!(const M4x4& a) 
+	{
+		M4x4 result;
+		float o[4][4], inv[4][4], div, f1, f2, f3;
+		int i = 0, j;
+		while (i < 4)
+		{
+			j = 0;
+			while (j < 4)
+			{
+				o[i][j] = a.m[i][j];
+				inv[i][j] = 0;
+				j++;
+			}
+			inv[i][i] = 1;
+			i++;
+		}
+		i = 0;
+		while (i < 4) 
+		{
+			j = 0;
+			div = 1 / o[i][i];
+			f1 = -o[(i + 1) % 4][i];
+			f2 = -o[(i + 2) % 4][i];
+			f3 = -o[(i + 3) % 4][i];
+			while (j < 4)
+			{
+				o[i][j] *= div;
+				o[(i + 1) % 4][j] += o[i][j] * f1;
+				o[(i + 2) % 4][j] += o[i][j] * f2;
+				o[(i + 3) % 4][j] += o[i][j] * f3;
+				inv[i][j] *= div;
+				inv[(i + 1) % 4][j] += inv[i][j] * f1;
+				inv[(i + 2) % 4][j] += inv[i][j] * f2;
+				inv[(i + 3) % 4][j] += inv[i][j] * f3;
+				j++;
+			}
+			i++;
+		}
+		i = 0;
+		while (i < 4)
+		{
+			j = 0;
+			while (j < 4)
+			{
+				result[i][j] = (float)inv[i][j];
+				j++;
+			}
+
 			i++;
 		}
 		return result;

@@ -15,15 +15,15 @@ using namespace hb_math;
 export namespace modelImp
 {
 
-	
+
 
 	struct face
 	{
-		public:
-			int size;
-			int *data;
+	public:
+		int size;
+		int* data;
 	};
-	
+
 	class obj
 	{
 	public:
@@ -33,8 +33,7 @@ export namespace modelImp
 		face* f;
 		int v_size, uv_size, n_size, f_size;
 
-	private:
-		int v_b_size, uv_b_size, n_b_size, f_b_size;
+
 
 	public:
 		obj(const char* file)
@@ -118,14 +117,14 @@ export namespace modelImp
 				}
 				if (line[0] == 'f') //faces
 				{
-					
+
 					face new_face;
 #if importer_debug
 					cout << line << endl;
 #endif
 
 					line.erase(0, 2);
-					
+
 					vector<int> k;
 					string sub;
 					while (line.find("/") != string::npos)
@@ -149,7 +148,7 @@ export namespace modelImp
 					std::memcpy(new_face.data, k.data(), k.size() * sizeof(int));
 					new_face.size = k.size();
 #if importer_debug
-					
+
 					cout << new_face.data[0] << " " << new_face.data[1] << " " << new_face.data[2] << endl;
 					cout << new_face.data[3] << " " << new_face.data[4] << " " << new_face.data[5] << endl;
 					cout << new_face.data[6] << " " << new_face.data[7] << " " << new_face.data[8] << endl;
@@ -185,7 +184,7 @@ export namespace modelImp
 			f = new face[f_temp.size()];
 			std::memcpy(f, f_temp.data(), f_temp.size() * sizeof(face));
 			f_temp.clear();
-			f_temp.shrink_to_fit();		
+			f_temp.shrink_to_fit();
 			cout << "Loaded " << f_size << " polygons" << endl;
 
 #if importer_debug
@@ -195,7 +194,7 @@ export namespace modelImp
 			int i = 0;
 			cout << "f_size: " << f_size << endl;
 			cout << f[f_size - 1].size << endl;
-			while (i<f[f_size-1].size)
+			while (i < f[f_size - 1].size)
 			{
 				cout << f[f_size - 1].data[i] << "/";
 				i++;
@@ -203,7 +202,7 @@ export namespace modelImp
 			cout << endl;
 #endif
 
-			
+
 			stream.close();
 		}
 
@@ -239,26 +238,26 @@ export namespace modelImp
 
 	};
 
-	class texture 
+	class texture
 	{
 	public:
 		int width = 0;
 		int height = 0;
 		col3** image;
 
-		texture(const char* filename) 
+		texture(const char* filename)
 		{
 			int headerSize;
 			ifstream text;
 			text.open(filename, ios::binary);
-			
+
 			text.seekg(10);
 			text.read((char*)&headerSize, 4);
 			text.seekg(18);
 			text.read((char*)&width, 4);
 			text.read((char*)&height, 4);
 			text.seekg(headerSize);
-			image = new col3*[height];
+			image = new col3 * [height];
 
 			int i = 0, j;
 			while (i < width)
@@ -279,25 +278,29 @@ export namespace modelImp
 		void getColor(float x, float y, float* out)
 		{
 			if (!out)return;
-			float r;
 			if (x < 0)
-				x = 1+modf(x, &r);
-			if (x > 1)
-				x = modf(x, &r);
-			if (y < 0)
-				y = 1 + modf(y, &r);
-			if (y > 1)
-				y = modf(y, &r);
-			int i = (int)(x * height);
-			int j = (int)(y * width);
-			
-
-			if (i < width &&  j < height)
 			{
-				out[0] = image[i][j].col[2];
-				out[1] = image[i][j].col[1];
-				out[2] = image[i][j].col[0];
+				x = ((int)x)*-1+x;
 			}
+			if (x >= 1)
+			{
+				x = x-(int)x;
+			}
+			if (y < 0)
+			{
+				y = ((int)y) * -1 + y;
+			}
+			if (y >= 1)
+			{
+				y = y-(int)y;
+			}
+			int i = x * height;
+			int j = y * width;
+
+			out[0] = image[i][j].col[0];
+			out[1] = image[i][j].col[1];
+			out[2] = image[i][j].col[2];
+			
 		}
 	};
 }

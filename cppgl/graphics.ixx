@@ -81,6 +81,9 @@ export namespace gl {
 	int vp_boundy = 0;
 	const int filesize = width * height * pixel_size;
 
+	M4x4 Cam;
+	vect3 worldUp;
+
 	 void glCreateViewPort(int x, int y, int width, int height)
 	{
 		vp_x = x;
@@ -91,8 +94,35 @@ export namespace gl {
 		vp_boundy = (vp_y + vp_height) > gl::height ? gl::height : (vp_y + vp_height);
 	}
 
+	 void LookAt(vect3 eye, vect3 campos) 
+	 {
+
+		 vect3 forward, right, up;
+		 forward = !(campos - eye);
+		 right = !(worldUp * forward);
+		 up = !(forward * right);
+
+		 Cam = 'I';
+		 Cam[0][0] = right.x;
+		 Cam[1][0] = right.y;
+		 Cam[2][0] = right.z;
+
+		 Cam[0][1] = up.x;
+		 Cam[1][1] = up.y;
+		 Cam[2][1] = up.z;
+
+		 Cam[0][2] = forward.x;
+		 Cam[1][2] = forward.y;
+		 Cam[2][2] = forward.z;
+
+		 Cam[0][3] = campos.x;
+		 Cam[1][3] = campos.y;
+		 Cam[2][3] = campos.z;
+	 }
+
 	 void glCreateWindow(int new_width = 1920, int new_height = 1080)
 	 {
+		 worldUp.y = 1;
 		 maxZ = new col3();
 		 maxZ->col[0] = maxZ->col[0] = maxZ->col[0] = -FLT_MAX;
 		 for (int i = 0; i < width; i++)
@@ -328,7 +358,7 @@ export namespace gl {
 
 	 /*void fillTriangle(vect2* triangle)
 	 {
-		 col3* color = new col3(rand() / (float)RAND_MAX, rand() / (float)RAND_MAX, rand() / (float)RAND_MAX);
+		 col3* color = new col3(rand() / (double)RAND_MAX, rand() / (double)RAND_MAX, rand() / (double)RAND_MAX);
 		 vect2 middle;
 		 float highest, leftmost, rightmost;
 		 int lmi = 0, rmi = 0;
@@ -444,7 +474,7 @@ export namespace gl {
 		 }
 	 }
 
-	 void barycentricCords(vect2 A, vect2 B, vect2 C, vect2 P, vect3* out)
+	 inline void barycentricCords(vect2 A, vect2 B, vect2 C, vect2 P, vect3* out)
 	 {
 		 float u, v, w, ABC;
 
@@ -538,19 +568,19 @@ export namespace gl {
 				 if (uvw->z >= 0 && uvw->y >= 0 && uvw->x >= 0)
 				 {
 					 z = A.z * uvw->x + B.z * uvw->y + C.z * uvw->z;
-					 if (z > zBuffer[i][j])
+					 if (z > zBuffer[i % vp_boundx][j%vp_boundy] && z >= -1 && z <= 1)
 					 {
 						 if (t && texcords) // calculates the uvs							 
 							 t->getColor( (texcords[0].y * uvw->x + texcords[1].y * uvw->y + texcords[2].y * uvw->z), 
-								 (texcords[0].x * uvw->x + texcords[1].x * uvw->y + texcords[2].x * uvw->z)
+								  (texcords[0].x * uvw->x + texcords[1].x * uvw->y + texcords[2].x * uvw->z)
 								 , tcol);
 						 
 						 
-						 (*col)[0] = (int)(intensity * tcol[0]);
-						 (*col)[1] = (int)(intensity * tcol[1]);
-						 (*col)[2] = (int)(intensity * tcol[2]);
+						 col->col[0] = (int)(intensity * tcol[0]);
+						 col->col[1] = (int)(intensity * tcol[1]);
+						 col->col[2] = (int)(intensity * tcol[2]);
 						 gldraw_vertex(P.x, P.y, col);
-						 zBuffer[(int)P.x][(int)P.y] = z;
+						 zBuffer[(int)P.x % vp_boundx][(int)P.y % vp_boundy] = z;
 					 }
 					 
 				 }
@@ -563,7 +593,7 @@ export namespace gl {
 #else
 
 		 vect2 v0 = triangle[0], v1 = triangle[1], v2 = triangle[2];
-		 if (randCol) color = new col3(rand() / (float)RAND_MAX, rand() / (float)RAND_MAX, rand() / (float)RAND_MAX);
+		 if (randCol) color = new col3(rand() / (double)RAND_MAX, rand() / (double)RAND_MAX, rand() / (double)RAND_MAX);
 		 vect2 temp;
 
 		 if (v0.y < v1.y)
@@ -606,13 +636,83 @@ export namespace gl {
 		 if (randCol) delete color;
 #endif
 	 }
+#define pi 3.1415926535897932
+
+	 M4x4 createObjectMatrix(vect3 scale, vect3 translate, vect3 rotation) 
+	 {
+		 M4x4 Mt, Ms, Mr, Rx, Ry, Rz;
+		 Rz = Ry = Rx = Ms = Mt = 'I';
+		 Mt[0][3] = translate.x;
+		 Mt[1][3] = translate.y;
+		 Mt[2][3] = translate.z;
+
+		 Ms[0][0] = scale.x;
+		 Ms[1][1] = scale.y;
+		 Ms[2][2] = scale.z;
+
+		 rotation = rotation * (pi / 180);
+		 Rx[1][1] = Rx[2][2] = cos(rotation.x);
+		 Rx[1][2] = sin(rotation.x);
+		 Rx[2][1] = -sin(rotation.x);
+		 Ry[0][0] = Ry[2][2] = cos(rotation.y);
+		 Ry[2][0] = sin(rotation.y);
+		 Ry[0][2] = -sin(rotation.y);
+		 Rz[0][0] = Rz[1][1] = cos(rotation.z);
+		 Rz[0][1] = sin(rotation.z);
+		 Rz[1][0] = -sin(rotation.z);
+
+		 Mr = Rx * Ry * Rz;
+		 
+		 return  Mt * Mr * Ms;
+	 }
+
+	 M4x4 getVpxPxVM(float n = 0.5, float f = 10000, float fov = 60) 
+	 {
+		 float ar = ((float)vp_width / (float)vp_height);
+		 float t = tan(fov * (pi / 360)) * n;
+		 float r = t * ar;
+		 M4x4 VM = !Cam;
+		 M4x4 p, Vp;
+		 p = Vp = 'I';
+
+		 Vp[0][0] = vp_width / 2;
+		 Vp[1][1] = vp_height / 2;
+		 Vp[2][2] = 0.5;
+		 Vp[0][3] = vp_x + vp_width / 2;
+		 Vp[1][3] = vp_y + vp_height / 2;
+		 Vp[2][3] = 0.5;
+
+		 p[0][0] = n / r;
+		 p[1][1] = n / t;
+		 p[2][2] = -(f + n) / (f - n);
+		 p[3][3] = 0;
+		 p[3][2] = -1;
+		 p[2][3] = -(2 * f * n) / (f - n);
+
+		 return Vp * p * VM;
+	 }
+
+
+	 vect3 transform(vect3 V, M4x4 Matrix) 
+	 {
+		 vect4 result;
+		 
+		 result = V;
+		 result = Matrix * result;
+		 result = result * (1 / result.w);
+
+		 vect3 vf;
+		 vf.x = result.x;
+		 vf.y = result.y;
+		 vf.z = result.z;
+
+		 return vf;
+	 }
 
 
 
-
-
-
-	 obj* glLoadModel(const char* filename, vect3 translate, vect3 scale, vect3 lightDir, texture* text = nullptr, bool discard = false)
+	 //old glLoad that loaded the model
+	/* obj* glLoadModel(const char* filename, vect3 translate, vect3 scale, vect3 rotation, vect3 lightDir, texture* text = nullptr, bool discard = false)
 	{
 		obj* model = new obj(filename);
 		vect3 poly[10];
@@ -630,16 +730,16 @@ export namespace gl {
 				vect3 v1 = model->v[model->f[i].data[j] - 1];
 				vect3 uv = model->uvs[model->f[i].data[(j+1) % model->f[i].size] - 1];
 
-				poly[j / 3].x = v1.x * scale.x + translate.x;
-				poly[j / 3].y = v1.y * scale.y + translate.y;
-				poly[j / 3].z = v1.z * scale.z + translate.z;
+				poly[j / 3] = objectToClip(v1, scale, translate, rotation);
 
-				texcords[j / 3].x = uv.x;
-				texcords[j / 3].y = uv.y;
-				texcords[j / 3].z = uv.z;
+				texcords[j / 3] = uv;
+
+				
 
 				j += 3;
 			}
+
+			
 
 			normal = !((poly[1] - poly[0]) * (poly[2] - poly[0]));
 
@@ -665,12 +765,14 @@ export namespace gl {
 			return nullptr;
 		}
 		return model;
-	}
+	}*/
 
-	obj* glLoadModel(obj* model, vect3 translate, vect3 scale, vect3 lightDir, texture* text = nullptr, bool discard = false)
+	obj* glRenderModel(obj* model, vect3 translate, vect3 scale, vect3 rotation, vect3 lightDir, texture* text = nullptr)
 	{
 		vect3 poly[10];
 		vect3 normal, texcords[10];
+		M4x4 M = createObjectMatrix(scale, translate, rotation); 
+		M4x4 VpxPxVM = getVpxPxVM();
 
 
 		int i = 0, j;
@@ -684,9 +786,8 @@ export namespace gl {
 				vect3 v1 = model->v[model->f[i].data[j] - 1];
 				vect3 uv = model->uvs[model->f[i].data[(j + 1) % model->f[i].size] - 1];
 
-				poly[j / 3].x = v1.x * scale.x + translate.x;
-				poly[j / 3].y = v1.y * scale.y + translate.y;
-				poly[j / 3].z = v1.z * scale.z + translate.z;
+
+				poly[j / 3] = transform(v1, M);
 
 				texcords[j / 3].x = uv.x;
 				texcords[j / 3].y = uv.y;
@@ -697,25 +798,24 @@ export namespace gl {
 
 			normal = !((poly[1] - poly[0]) * (poly[2] - poly[0]));
 
-			intensity = normal ^ lightDir;
+			intensity = normal ^ lightDir * -1.0f;
 			intensity = clamp01(intensity);
+
+			poly[0] = transform(poly[0], VpxPxVM);
+			poly[1] = transform(poly[1], VpxPxVM);
+			poly[2] = transform(poly[2], VpxPxVM);
 
 			fillTriangle(poly, nullptr, true, intensity, text, texcords);
 
 			if (model->f[i].size >= 12)
 			{
+				poly[3] = transform(poly[3], VpxPxVM);
 				poly[1] = poly[3];
 				texcords[1] = texcords[3];
 				fillTriangle(poly, nullptr, true, intensity, text, texcords);
 			}
 
 			i++;
-		}
-
-		if (discard)
-		{
-			delete model;
-			return nullptr;
 		}
 		return model;
 	}
