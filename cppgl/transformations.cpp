@@ -21,10 +21,11 @@ int main()
 	vect3 rotation;
 	rotation.x = 0;
 	rotation.y = 0;
-	rotation.z = 15;
+	rotation.z = 0;
 	scale.x = 500;
 	scale.y = 500;
 	scale.z = 500;
+	trans.y = 250;
 	vect3 light = *new vect3();
 	modelImp::texture* gradient = new modelImp::texture("models/gekotaTexture.bmp");
 	light.x = 1;
@@ -32,16 +33,16 @@ int main()
 	light.z = -1;
 	modelImp::obj* model = nullptr;
 	vect3 eye;
-	eye.y = 250;
+	eye.y = 500;
 	vect3 camPos;
-	camPos.y = 250;
-	camPos.z = -500;
+	camPos.y = 500;
+	camPos.z = -400;
 	LookAt(eye, camPos);
 	
 	
 	model = glRenderModel(new modelImp::obj("models/gekota.obj"), trans, scale, rotation, light, gradient);
 
-	glFinish("dutchAngle.bmp", false);
+	glFinish("lowAngle.bmp", false);
 	auto stop = high_resolution_clock::now();
 	auto duration = duration_cast<seconds>(stop - start);
 	std::cout << "Execution time: " << duration.count() << " seconds" << std::endl;
