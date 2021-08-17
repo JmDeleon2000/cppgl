@@ -82,6 +82,7 @@ export namespace gl {
 	const int filesize = width * height * pixel_size;
 
 	M4x4 Cam;
+	M4x4 VM;
 	vect3 worldUp;
 
 	 void glCreateViewPort(int x, int y, int width, int height)
@@ -118,6 +119,7 @@ export namespace gl {
 		 Cam[0][3] = campos.x;
 		 Cam[1][3] = campos.y;
 		 Cam[2][3] = campos.z;
+		 VM = !Cam;
 	 }
 
 	 void glCreateWindow(int new_width = 1920, int new_height = 1080)
@@ -671,7 +673,7 @@ export namespace gl {
 		 float ar = ((float)vp_width / (float)vp_height);
 		 float t = tan(fov * (pi / 360)) * n;
 		 float r = t * ar;
-		 M4x4 VM = !Cam;
+		 
 		 M4x4 p, Vp;
 		 p = Vp = 'I';
 
@@ -692,6 +694,13 @@ export namespace gl {
 		 return Vp * p * VM;
 	 }
 
+	 void viewMatrix(vect3 translate, vect3 rotation)
+	 {
+		 vect3 scale;
+		 scale.x = scale.y = scale.z = 1;
+		 Cam = createObjectMatrix(scale, translate, rotation);
+		 VM = !Cam;
+	 }
 
 	 vect3 transform(vect3 V, M4x4 Matrix) 
 	 {
