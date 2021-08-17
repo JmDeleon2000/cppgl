@@ -330,6 +330,15 @@ export namespace hb_math
 		result.w = a.w * b;
 		return result;
 	}
+	vect4 operator*=(const vect4& a, const float& b)
+	{
+		vect4 result;
+		result.x = a.x * b;
+		result.y = a.y * b;
+		result.z = a.z * b;
+		result.w = a.w * b;
+		return result;
+	}
 	vect4 operator!(const vect4& a)//normalization
 	{
 		vect4 result;
@@ -385,6 +394,14 @@ export namespace hb_math
 		result.z = a.z * b;
 		return result;
 	}
+	vect3 operator*=(const vect3& a, const float& b)
+	{
+		vect3 result;
+		result.x = a.x * b;
+		result.y = a.y * b;
+		result.z = a.z * b;
+		return result;
+	}
 	vect3 operator!(const vect3& a) 
 	{
 		vect3 result;
@@ -425,6 +442,13 @@ export namespace hb_math
 		return a.x * b.y - a.y * b.x;
 	}
 	vect2 operator*(const vect2& a, const float& b)
+	{
+		vect2 result;
+		result.x = a.x * b;
+		result.y = a.y * b;
+		return result;
+	}
+	vect2 operator*=(const vect2& a, const float& b)
 	{
 		vect2 result;
 		result.x = a.x * b;

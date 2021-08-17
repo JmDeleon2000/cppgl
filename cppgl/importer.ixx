@@ -245,6 +245,10 @@ export namespace modelImp
 		int height = 0;
 		col3** image;
 
+		texture() 
+		{
+		}
+
 		texture(const char* filename)
 		{
 			int headerSize;
@@ -275,7 +279,7 @@ export namespace modelImp
 			text.close();
 		}
 
-		void getColor(float x, float y, float* out)
+		void getColor(float x, float y, vect3* out)
 		{
 			if (!out)return;
 			if (x < 0)
@@ -297,9 +301,9 @@ export namespace modelImp
 			int i = x * height;
 			int j = y * width;
 
-			out[0] = image[i][j].col[0];
-			out[1] = image[i][j].col[1];
-			out[2] = image[i][j].col[2];
+			out->z = (float)image[i][j].col[0]/255;
+			out->y = (float)image[i][j].col[1]/255;
+			out->x = (float)image[i][j].col[2]/255;
 			
 		}
 	};

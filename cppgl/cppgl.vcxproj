@@ -148,6 +148,7 @@
     <ClCompile Include="math.ixx" />
     <ClCompile Include="modelos.cpp" />
     <ClCompile Include="poligonos.cpp" />
+    <ClCompile Include="shaders.ixx" />
     <ClCompile Include="transformations.cpp" />
   </ItemGroup>
   <ItemGroup>

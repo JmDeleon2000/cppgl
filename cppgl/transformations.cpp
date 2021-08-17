@@ -3,10 +3,12 @@
 import graphics;
 import ModelImporter;
 import hb_math;
-using namespace hb_math;
+import shaders;
 
+using namespace hb_math;
 using namespace std::chrono;
 using namespace gl;
+
 
 
 int main()
@@ -38,8 +40,10 @@ int main()
 	camPos.y = 500;
 	camPos.z = -400;
 	LookAt(eye, camPos);
-	
-	
+	gl::active_shader = shd::flat;
+	gl::active_textures[0] = gradient;
+	gl::lightSources[0] = light;
+
 	model = glRenderModel(new modelImp::obj("models/gekota.obj"), trans, scale, rotation, light, gradient);
 
 	glFinish("lowAngle.bmp", false);

@@ -2,13 +2,15 @@
 #include <iostream>
 import ModelImporter;
 import hb_math;
+import shaders;
+
 
 export module graphics;
 
 
 using namespace modelImp;
 using namespace hb_math;
-
+using namespace shd;
 
 #define pixel_size  3
 #define baryCentric true
@@ -64,9 +66,12 @@ export namespace gl {
 	col3* clear_col = new col3();
 	col3* draw_col = new col3();
 
-	 col3* WHITE = new col3(1, 1, 1);
-	 col3* BLACK = new col3();
-	 col3* maxZ;
+	col3* WHITE = new col3(1, 1, 1);
+	col3* BLACK = new col3();
+	col3* maxZ;
+	texture* active_textures[5];
+	vect3 lightSources[10];
+	vect3 (*active_shader)(void*);
 
 	col3** frameBuffer;
 	float** zBuffer;
@@ -476,11 +481,11 @@ export namespace gl {
 		 }
 	 }
 
-	 inline void barycentricCords(vect2 A, vect2 B, vect2 C, vect2 P, vect3* out)
+	 inline void barycentricCords(float ABC, vect2 A, vect2 B, vect2 C, vect2 P, vect3* out)
 	 {
-		 float u, v, w, ABC;
+		 float u, v, w;
 
-		 ABC = ((B.y - C.y) * (A.x - C.x) + (C.x - B.x) * (A.y - C.y)); //-+
+		 
 
 		 if (ABC == 0)
 		 {
@@ -500,7 +505,7 @@ export namespace gl {
 		 out->z = w;
 	 }
 
-	 void fillTriangle(vect3* triangle, col3* color = nullptr, bool randCol = false, float intensity = 0, texture * t = nullptr, vect3* texcords = nullptr)
+	 void fillTriangle(vect3* triangle, col3* color = nullptr,  vect3* texcords = nullptr, vect3* normals = nullptr)
 	 {
 #if baryCentric
 		 vect3 A = triangle[0], B = triangle[1], C = triangle[2], temp;
@@ -515,8 +520,8 @@ export namespace gl {
 
 		 int minX,  maxX, minY, maxY;
 		 float z;
-		 float tcol[3];
-		 tcol[0] = tcol[1] = tcol[2] = 255;
+		 vect3 Color;
+
 		 maxX = minX = A.x;
 		 maxY = minY = A.y;
 		 vect2 P;
@@ -558,6 +563,8 @@ export namespace gl {
 		 if (maxY > vp_boundy)
 			 maxY = vp_boundy;
 
+		 shdArgs args;
+		 float ABC_area = ((Bp.y - Cp.y) * (Ap.x - Cp.x) + (Cp.x - Bp.x) * (Ap.y - Cp.y));
 		 int i = minX - 1, j;
 		 while (i++ < maxX)
 		 {
@@ -566,21 +573,26 @@ export namespace gl {
 			 {
 				 P.x = i;
 				 P.y = j;
-				 barycentricCords(Ap, Bp, Cp, P, uvw);
+				 barycentricCords(ABC_area, Ap, Bp, Cp, P, uvw);
 				 if (uvw->z >= 0 && uvw->y >= 0 && uvw->x >= 0)
 				 {
 					 z = A.z * uvw->x + B.z * uvw->y + C.z * uvw->z;
 					 if (z > zBuffer[i % vp_boundx][j%vp_boundy] && z >= -1 && z <= 1)
 					 {
-						 if (t && texcords) // calculates the uvs							 
-							 t->getColor( (texcords[0].y * uvw->x + texcords[1].y * uvw->y + texcords[2].y * uvw->z), 
-								  (texcords[0].x * uvw->x + texcords[1].x * uvw->y + texcords[2].x * uvw->z)
-								 , tcol);
+						args.interpolators = *uvw;
+						args.A = A;
+						args.B = B;
+						args.C = A;
+						args.lightDir = lightSources;
+						args.normals = normals;
+						args.textures = active_textures;
+
+						Color = active_shader(&args);
 						 
 						 
-						 col->col[0] = (int)(intensity * tcol[0]);
-						 col->col[1] = (int)(intensity * tcol[1]);
-						 col->col[2] = (int)(intensity * tcol[2]);
+						 col->col[0] = (int)(Color.z * 255);
+						 col->col[1] = (int)(Color.y * 255);
+						 col->col[2] = (int)(Color.x * 255);
 						 gldraw_vertex(P.x, P.y, col);
 						 zBuffer[(int)P.x % vp_boundx][(int)P.y % vp_boundy] = z;
 					 }
@@ -814,14 +826,14 @@ export namespace gl {
 			poly[1] = transform(poly[1], VpxPxVM);
 			poly[2] = transform(poly[2], VpxPxVM);
 
-			fillTriangle(poly, nullptr, true, intensity, text, texcords);
+			fillTriangle(poly, nullptr, texcords);
 
 			if (model->f[i].size >= 12)
 			{
 				poly[3] = transform(poly[3], VpxPxVM);
 				poly[1] = poly[3];
 				texcords[1] = texcords[3];
-				fillTriangle(poly, nullptr, true, intensity, text, texcords);
+				fillTriangle(poly, nullptr, texcords);
 			}
 
 			i++;
