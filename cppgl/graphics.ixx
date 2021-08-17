@@ -586,6 +586,7 @@ export namespace gl {
 						args.lightDir = lightSources;
 						args.normals = normals;
 						args.textures = active_textures;
+						args.texCords = texcords;
 
 						Color = active_shader(&args);
 						 
