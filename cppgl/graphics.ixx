@@ -70,7 +70,15 @@ export namespace gl {
 	col3* BLACK = new col3();
 	col3* maxZ;
 	texture* active_textures[5];
+
 	vect3 lightSources[10];
+	vect3 lightColors[10];
+	float lightIntensity[10];
+
+	vect3 spotLights[10];
+	vect3 spotLightColors[10];
+	float spotLightIntensity[10];
+
 	vect3 (*active_shader)(void*);
 
 	col3** frameBuffer;
@@ -505,10 +513,10 @@ export namespace gl {
 		 out->z = w;
 	 }
 
-	 void fillTriangle(vect3* triangle, col3* color = nullptr,  vect3* texcords = nullptr, vect3* normals = nullptr)
+	 void fillTriangle(vect3* triangle, vect3* worldVertices, col3* color = nullptr,  vect3* texcords = nullptr, vect3* normals = nullptr)
 	 {
 #if baryCentric
-		 vect3 A = triangle[0], B = triangle[1], C = triangle[2], temp;
+		 vect3 A = triangle[0], B = triangle[1], C = triangle[2];
 		 vect2 Ap, Bp, Cp;
 
 		 Ap.x = A.x;
@@ -580,13 +588,19 @@ export namespace gl {
 					 if (z > zBuffer[i % vp_boundx][j%vp_boundy] && z >= -1 && z <= 1)
 					 {
 						args.interpolators = *uvw;
-						args.A = A;
-						args.B = B;
-						args.C = A;
+						args.A = worldVertices[0];
+						args.B = worldVertices[1];
+						args.C = worldVertices[2];
 						args.lightDir = lightSources;
+						args.lightCol = lightColors;
+						args.lightInt = lightIntensity;
+						args.spotLightPos = spotLights;
+						args.spotLightCol = spotLightColors;
+						args.spotLightInt = spotLightIntensity;
 						args.normals = normals;
 						args.textures = active_textures;
 						args.texCords = texcords;
+						args.triangleNormal = !((args.B - args.A) * (args.C - args.A));
 
 						Color = active_shader(&args);
 						 
@@ -651,19 +665,12 @@ export namespace gl {
 		 if (randCol) delete color;
 #endif
 	 }
+
 #define pi 3.1415926535897932
-
-	 M4x4 createObjectMatrix(vect3 scale, vect3 translate, vect3 rotation) 
+	 M4x4 createRotationMatrix(vect3 rotation)
 	 {
-		 M4x4 Mt, Ms, Mr, Rx, Ry, Rz;
-		 Rz = Ry = Rx = Ms = Mt = 'I';
-		 Mt[0][3] = translate.x;
-		 Mt[1][3] = translate.y;
-		 Mt[2][3] = translate.z;
-
-		 Ms[0][0] = scale.x;
-		 Ms[1][1] = scale.y;
-		 Ms[2][2] = scale.z;
+		 M4x4  Rx, Ry, Rz;
+		 Rz = Ry = Rx = 'I';
 
 		 rotation = rotation * (pi / 180);
 		 Rx[1][1] = Rx[2][2] = cos(rotation.x);
@@ -676,7 +683,23 @@ export namespace gl {
 		 Rz[0][1] = sin(rotation.z);
 		 Rz[1][0] = -sin(rotation.z);
 
-		 Mr = Rx * Ry * Rz;
+		 return Rx * Ry * Rz;
+	 }
+
+
+	 M4x4 createObjectMatrix(vect3 scale, vect3 translate, vect3 rotation) 
+	 {
+		 M4x4 Mt, Ms, Mr;
+		 Ms = Mt = 'I';
+		 Mt[0][3] = translate.x;
+		 Mt[1][3] = translate.y;
+		 Mt[2][3] = translate.z;
+
+		 Ms[0][0] = scale.x;
+		 Ms[1][1] = scale.y;
+		 Ms[2][2] = scale.z;
+
+		 Mr = createRotationMatrix(rotation);
 		 
 		 return  Mt * Mr * Ms;
 	 }
@@ -731,71 +754,36 @@ export namespace gl {
 		 return vf;
 	 }
 
+	 vect3 dirTransform(vect3 V, M4x4 Matrix)
+	 {
+		 vect4 result;
 
-
-	 //old glLoad that loaded the model
-	/* obj* glLoadModel(const char* filename, vect3 translate, vect3 scale, vect3 rotation, vect3 lightDir, texture* text = nullptr, bool discard = false)
-	{
-		obj* model = new obj(filename);
-		vect3 poly[10];
-		vect3 normal,  texcords[10];
-
-
-		int i = 0, j;
-		float intensity;
-		bool  success = true;
-		while (i < model->f_size)
-		{
-			j = 0;
-			while (j < model->f[i].size)
-			{
-				vect3 v1 = model->v[model->f[i].data[j] - 1];
-				vect3 uv = model->uvs[model->f[i].data[(j+1) % model->f[i].size] - 1];
-
-				poly[j / 3] = objectToClip(v1, scale, translate, rotation);
-
-				texcords[j / 3] = uv;
-
-				
-
-				j += 3;
-			}
-
-			
-
-			normal = !((poly[1] - poly[0]) * (poly[2] - poly[0]));
-
-			intensity = normal ^ lightDir;
-			intensity = clamp01(intensity);
-
-			fillTriangle(poly, nullptr, true, intensity, text, texcords);
-			
-			if (model->f[i].size >= 12)
-			{
-				poly[1] = poly[3];
-				texcords[1] = texcords[3];
-				fillTriangle(poly, nullptr, true, intensity, text, texcords);
-			}
-			
-			i++;
-		}
+		 result = V;
+		 result.w = 0;
+		 result = Matrix * result;
 		
-		
-		if (discard)
-		{
-			delete model;
-			return nullptr;
-		}
-		return model;
-	}*/
+
+		 vect3 vf;
+		 vf.x = result.x;
+		 vf.y = result.y;
+		 vf.z = result.z;
+
+		 return vf;
+	 }
+
+
 
 	obj* glRenderModel(obj* model, vect3 translate, vect3 scale, vect3 rotation, vect3 lightDir, texture* text = nullptr)
 	{
-		vect3 poly[10];
-		vect3 normal, texcords[10];
+		vect3 poly[10], worldVerts[10];
+		vect3 normals[10], texcords[10];
 		M4x4 M = createObjectMatrix(scale, translate, rotation); 
+		M4x4 Mr = createRotationMatrix(rotation);
 		M4x4 VpxPxVM = getVpxPxVM();
 
+		vect3 v1;
+		vect3 vt;
+		vect3 vn;
 
 		int i = 0, j;
 		float intensity;
@@ -805,36 +793,38 @@ export namespace gl {
 			j = 0;
 			while (j < model->f[i].size)
 			{
-				vect3 v1 = model->v[model->f[i].data[j] - 1];
-				vect3 uv = model->uvs[model->f[i].data[(j + 1) % model->f[i].size] - 1];
+				v1 = model->v[model->f[i].data[j] - 1];
+				vt = model->uvs[model->f[i].data[(j + 1) % model->f[i].size] - 1];
+				vn = model->uvs[model->f[i].data[(j + 2) % model->f[i].size] - 1];
 
+				worldVerts[j / 3] = poly[j / 3] = transform(v1, M);
 
-				poly[j / 3] = transform(v1, M);
+				texcords[j / 3] = vt;
 
-				texcords[j / 3].x = uv.x;
-				texcords[j / 3].y = uv.y;
-				texcords[j / 3].z = uv.z;
+				normals[j / 3] = dirTransform(vn, Mr);
 
 				j += 3;
 			}
-
-			normal = !((poly[1] - poly[0]) * (poly[2] - poly[0]));
-
-			intensity = normal ^ lightDir * -1.0f;
-			intensity = clamp01(intensity);
 
 			poly[0] = transform(poly[0], VpxPxVM);
 			poly[1] = transform(poly[1], VpxPxVM);
 			poly[2] = transform(poly[2], VpxPxVM);
 
-			fillTriangle(poly, nullptr, texcords);
+			fillTriangle(poly, worldVerts, nullptr, texcords, normals);
 
 			if (model->f[i].size >= 12)
 			{
 				poly[3] = transform(poly[3], VpxPxVM);
-				poly[1] = poly[3];
-				texcords[1] = texcords[3];
-				fillTriangle(poly, nullptr, texcords);
+				poly[1] = poly[2];
+				worldVerts[1] = worldVerts[2];
+				texcords[1] = texcords[2];
+				normals[1] = normals[2];
+				poly[2] = poly[3];
+				worldVerts[2] = worldVerts[3];
+				texcords[2] = texcords[3];
+				normals[2] = normals[3];
+
+				fillTriangle(poly, worldVerts, nullptr, texcords, normals);
 			}
 
 			i++;
@@ -842,4 +832,17 @@ export namespace gl {
 		return model;
 	}
 
+	void setDirLight(int index, vect3 direction, vect3 color, float intensity = 1) 
+	{
+		lightSources[index] = direction;
+		lightColors[index] = color;
+		lightIntensity[index] = intensity;
+	}
+
+	void setSpotLight(int index, vect3 position, vect3 color, float intensity = 1)
+	{
+		spotLights[index] = position;
+		spotLightColors[index] = color;
+		spotLightIntensity[index] = intensity;
+	}
 }

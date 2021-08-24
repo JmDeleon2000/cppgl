@@ -144,6 +144,7 @@
     <ClCompile Include="flatShading.cpp" />
     <ClCompile Include="graphics.ixx" />
     <ClCompile Include="importer.ixx" />
+    <ClCompile Include="lab_shaders.cpp" />
     <ClCompile Include="lines.cpp" />
     <ClCompile Include="math.ixx" />
     <ClCompile Include="modelos.cpp" />

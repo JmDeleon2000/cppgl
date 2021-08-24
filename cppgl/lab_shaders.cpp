@@ -11,7 +11,7 @@ using namespace gl;
 
 
 
-/*int main()
+int main()
 {
 	auto start = high_resolution_clock::now();
 	const int width = 1920;
@@ -66,9 +66,9 @@ using namespace gl;
 
 
 
-	gl::active_shader = shd::multiLight;
+	gl::active_shader = shd::toon;
 	model = glRenderModel(new modelImp::obj("models/model.obj"), trans, scale, rotation, light, gradient);
-	
+
 	trans.x = -10;
 	gl::active_shader = shd::flat;
 	//glRenderModel(model, trans, scale, rotation, light, gradient);
@@ -83,4 +83,4 @@ using namespace gl;
 	auto duration = duration_cast<seconds>(stop - start);
 	std::cout << "Execution time: " << duration.count() << " seconds" << std::endl;
 	return 0;
-}*/
+}

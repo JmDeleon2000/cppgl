@@ -45,6 +45,9 @@
     <ClCompile Include="shaders.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="lab_shaders.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="articMonkeys.bmp">

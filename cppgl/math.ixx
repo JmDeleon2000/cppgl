@@ -292,6 +292,7 @@ export namespace hb_math
 		i = 0x5f3759df - (i >> 1);
 		y = *(float*)&i;
 		y = y * (threehalfs - (x2 * y * y));
+		//y = y * (threehalfs - (x2 * y * y));
 	
 		return y;
 	}
@@ -322,15 +323,6 @@ export namespace hb_math
 		return result;
 	}
 	vect4 operator*(const vect4& a, const float& b)
-	{
-		vect4 result;
-		result.x = a.x * b;
-		result.y = a.y * b;
-		result.z = a.z * b;
-		result.w = a.w * b;
-		return result;
-	}
-	vect4 operator*=(const vect4& a, const float& b)
 	{
 		vect4 result;
 		result.x = a.x * b;
@@ -394,14 +386,6 @@ export namespace hb_math
 		result.z = a.z * b;
 		return result;
 	}
-	vect3 operator*=(const vect3& a, const float& b)
-	{
-		vect3 result;
-		result.x = a.x * b;
-		result.y = a.y * b;
-		result.z = a.z * b;
-		return result;
-	}
 	vect3 operator!(const vect3& a) 
 	{
 		vect3 result;
@@ -448,13 +432,6 @@ export namespace hb_math
 		result.y = a.y * b;
 		return result;
 	}
-	vect2 operator*=(const vect2& a, const float& b)
-	{
-		vect2 result;
-		result.x = a.x * b;
-		result.y = a.y * b;
-		return result;
-	}
 	vect2 operator!(const vect2& a)
 	{
 		vect2 result;
@@ -470,5 +447,12 @@ export namespace hb_math
 	float operator^(const vect2& a, const vect2& b)
 	{
 		return a.x * b.x + a.y * b.y;
+	}
+
+	float Dist(vect3 a, vect3 b)
+	{
+		vect3 c;
+		c = a - b;
+		return 1/q_sqrt(c.x * c.x + c.y * c.y + c.z * c.z);
 	}
 }
