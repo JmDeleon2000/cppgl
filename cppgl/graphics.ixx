@@ -572,6 +572,7 @@ export namespace gl {
 			 maxY = vp_boundy;
 
 		 shdArgs args;
+		 shaderOut shader_out;
 		 float ABC_area = ((Bp.y - Cp.y) * (Ap.x - Cp.x) + (Cp.x - Bp.x) * (Ap.y - Cp.y));
 		 int i = minX - 1, j;
 		 while (i++ < maxX)
@@ -601,15 +602,26 @@ export namespace gl {
 						args.textures = active_textures;
 						args.texCords = texcords;
 						args.triangleNormal = !((args.B - args.A) * (args.C - args.A));
+						
 
 						Color = active_shader(&args);
-						 
-						 
-						 col->col[0] = (int)(Color.z * 255);
-						 col->col[1] = (int)(Color.y * 255);
-						 col->col[2] = (int)(Color.x * 255);
-						 gldraw_vertex(P.x, P.y, col);
-						 zBuffer[(int)P.x % vp_boundx][(int)P.y % vp_boundy] = z;
+						
+						shader_out = args.out;
+
+						if (shader_out.blending == 0)
+						{
+							col->col[0] = (int)(Color.z * 255);
+							col->col[1] = (int)(Color.y * 255);
+							col->col[2] = (int)(Color.x * 255);
+						}
+						else
+						{
+							col->col[0] = clamp01(((float)frameBuffer[(int)P.x][(int)P.y].col[0]) / 255 + (Color.z) * 0.5) * 255;
+							col->col[1] = clamp01(((float)frameBuffer[(int)P.x][(int)P.y].col[1]) / 255 + (Color.y) * 0.5) * 255;
+							col->col[2] = clamp01(((float)frameBuffer[(int)P.x][(int)P.y].col[2]) / 255 + (Color.x) * 0.5) * 255;
+						}
+						gldraw_vertex(P.x, P.y, col);
+						if(shader_out.zWrite) zBuffer[(int)P.x % vp_boundx][(int)P.y % vp_boundy] = z;
 					 }
 					 
 				 }
