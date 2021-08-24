@@ -16,7 +16,7 @@ int main()
 	auto start = high_resolution_clock::now();
 	const int width = 1920;
 	const int height = 1080;
-	glCreateWindow(1920, 1080);
+	glInit();
 	set_draw_col(WHITE);
 	vect3 scale;
 	vect3 trans;
@@ -78,7 +78,7 @@ int main()
 	//gl::active_shader = shd::flat;
 	glRenderModel(model, trans, scale, rotation, light, gradient);
 
-	
+
 
 
 	glFinish("lowAngle.bmp", false);
