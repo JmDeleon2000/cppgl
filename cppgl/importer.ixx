@@ -298,8 +298,8 @@ export namespace modelImp
 			{
 				y = y-(int)y;
 			}
-			int i = x * height;
-			int j = y * width;
+			int j = x * width;
+			int i = y * height;
 
 			out->z = (float)image[i][j].col[0]/255;
 			out->y = (float)image[i][j].col[1]/255;

@@ -44,44 +44,50 @@ int main()
 	lightColor.x = 0;
 	lightColor.y = 0;
 	lightColor.z = 0;
-	setDirLight(0, light, lightColor);
+	setDirLight(0, light, lightColor, 1);
 	light.z = 0;
-	light.x = 1;
-	//lightColor.x = 0.5;
-	//lightColor.y = 0;
-	//lightColor.z = 0;
-	setDirLight(1, light, lightColor);
-	//lightColor.x = 0;
-	//lightColor.y = 0;
-	//lightColor.z = 0.5;
-	light.y = 1;
+	light.x = -1;
+	lightColor.x = 1;
+	lightColor.y = 0;
+	lightColor.z = 0;
+	setDirLight(1, light, lightColor, 1);
+	lightColor.x = 0;
+	lightColor.y = 0;
+	lightColor.z = 1;
+	light.y = -1;
 	light.x = 0;
-	setDirLight(2, light, lightColor, 1);
-	light.x = 1;
-	light.y = 4;
-	light.z = 2;
-	//lightColor.z = 0;
-	//lightColor.y = 0.2;
-	setSpotLight(0, light, lightColor, 3);
+	setDirLight(0, light, lightColor, 1);
+	light.x = 0;
+	light.y = 50;
+	light.z = 40;
+	lightColor.z = 0;
+	lightColor.y = 1;
+	lightColor.x = 0;
+	setSpotLight(0, light, lightColor, 20);
 
-	trans.x = 5;
+	trans.x = 0;
 	trans.z = 0;
+	trans.y = 30;
 	gl::active_shader = shd::multiLight;
 	model = glRenderModel(new modelImp::obj("models/model.obj"), trans, scale, rotation, light, gradient);
 
-	trans.x = 0;
-	trans.z = 2;
+	gl::active_shader = shd::outline;
+	trans.x = 100;
+	glRenderModel(model, trans, scale, rotation, light, gradient);
+
 	gl::active_shader = shd::alpha;
+	trans.x = -100;
 	glRenderModel(model, trans, scale, rotation, light, gradient);
 
-	trans.x = -50;
-	//gl::active_shader = shd::flat;
+	trans.x = 0;
+	trans.y = -60;
+	gl::active_shader = shd::toon;
 	glRenderModel(model, trans, scale, rotation, light, gradient);
 
 
 
 
-	glFinish("lowAngle.bmp", false);
+	glFinish("shaders.bmp", false);
 	auto stop = high_resolution_clock::now();
 	auto duration = duration_cast<seconds>(stop - start);
 	std::cout << "Execution time: " << duration.count() << " seconds" << std::endl;

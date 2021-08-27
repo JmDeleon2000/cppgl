@@ -97,6 +97,7 @@ export namespace gl {
 	M4x4 Cam;
 	M4x4 VM;
 	vect3 worldUp;
+	vect3 camFwd;
 
 	void glCreateViewPort(int x, int y, int width, int height)
 	{
@@ -110,11 +111,11 @@ export namespace gl {
 
 	void LookAt(vect3 eye, vect3 campos)
 	{
-
 		vect3 forward, right, up;
 		forward = !(campos - eye);
 		right = !(worldUp * forward);
 		up = !(forward * right);
+		camFwd = campos;
 
 		Cam = 'I';
 		Cam[0][0] = right.x;
@@ -602,6 +603,7 @@ export namespace gl {
 						args.textures = active_textures;
 						args.texCords = texcords;
 						args.triangleNormal = !((args.B - args.A) * (args.C - args.A));
+						args.cameraPositon = camFwd;
 
 
 						Color = active_shader(&args);
@@ -616,9 +618,9 @@ export namespace gl {
 						}
 						else
 						{
-							col->col[0] = clamp01(((float)frameBuffer[(int)P.x][(int)P.y].col[0]) / 255 + (Color.z) * 0.5) * 255;
-							col->col[1] = clamp01(((float)frameBuffer[(int)P.x][(int)P.y].col[1]) / 255 + (Color.y) * 0.5) * 255;
-							col->col[2] = clamp01(((float)frameBuffer[(int)P.x][(int)P.y].col[2]) / 255 + (Color.x) * 0.5) * 255;
+							col->col[0] = clamp01(((float)frameBuffer[(int)P.x][(int)P.y].col[0]) / 255 + (Color.z) * shader_out.alpha) * 255;
+							col->col[1] = clamp01(((float)frameBuffer[(int)P.x][(int)P.y].col[1]) / 255 + (Color.y) * shader_out.alpha) * 255;
+							col->col[2] = clamp01(((float)frameBuffer[(int)P.x][(int)P.y].col[2]) / 255 + (Color.x) * shader_out.alpha) * 255;
 						}
 						gldraw_vertex(P.x, P.y, col);
 						if (shader_out.zWrite) zBuffer[(int)P.x % vp_boundx][(int)P.y % vp_boundy] = z;
@@ -807,7 +809,7 @@ export namespace gl {
 			{
 				v1 = model->v[model->f[i].data[j] - 1];
 				vt = model->uvs[model->f[i].data[(j + 1) % model->f[i].size] - 1];
-				vn = model->uvs[model->f[i].data[(j + 2) % model->f[i].size] - 1];
+				vn = model->n[model->f[i].data[(j + 2) % model->f[i].size] - 1];
 
 				worldVerts[j / 3] = poly[j / 3] = transform(v1, M);
 
